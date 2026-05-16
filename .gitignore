@@ -1,0 +1,77 @@
+# ============================================
+# 项目敏感文件 — 禁止提交到公开仓库
+# ============================================
+
+# --- 设计文档（公开仓库不应包含详细设计） ---
+docs/
+
+# --- 环境变量与密钥 ---
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+*.pem
+*.key
+*.cert
+credentials.json
+service-account.json
+firebase-*.json
+
+# --- 依赖目录 ---
+node_modules/
+.pnp
+.pnp.js
+
+# --- 构建输出 ---
+dist/
+build/
+.next/
+out/
+.nuxt/
+.cache/
+
+# --- 日志 ---
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --- IDE 和编辑器 ---
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# --- 操作系统文件 ---
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# --- 测试覆盖率 ---
+coverage/
+.nyc_output/
+
+# --- TypeScript ---
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+*.egg-info/
+.eggs/
+
+# --- 临时文件 ---
+tmp/
+temp/
+*.tmp

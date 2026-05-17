@@ -1,0 +1,56 @@
+# ============================================
+# 本地开发环境 — Docker Compose
+# PostgreSQL 16 + Redis 7 + MinIO (S3 兼容存储)
+# 启动: docker compose up -d
+# ============================================
+
+version: "3.9"
+
+services:
+  # ---- 主数据库 ----
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: saas_platform
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ---- 缓存服务 ----
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ---- 对象存储 ----
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"   # API
+      - "9001:9001"   # Console
+    volumes:
+      - miniodata:/data
+
+volumes:
+  pgdata:
+  redisdata:
+  miniodata:

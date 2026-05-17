@@ -1,0 +1,200 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============ User & Auth ============
+
+model User {
+  id               String    @id @default(uuid())
+  email            String    @unique
+  passwordHash     String?
+  name             String?
+  avatarUrl        String?
+  locale           String    @default("zh-CN")
+  theme            String    @default("system")
+  emailVerifiedAt  DateTime?
+  lastLoginAt      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  deletedAt        DateTime?
+
+  oauthAccounts    UserOAuthAccount[]
+  refreshTokens    RefreshToken[]
+  orgRoles         UserOrganizationRole[]
+  createdOrgs      Organization[]       @relation("OrgCreator")
+
+  @@index([email])
+}
+
+model UserOAuthAccount {
+  id             String   @id @default(uuid())
+  userId         String
+  provider       String   // google, github
+  providerUserId String
+  providerEmail  String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerUserId])
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ============ Organization ============
+
+model Organization {
+  id        String    @id @default(uuid())
+  name      String
+  slug      String    @unique
+  logoUrl   String?
+  createdBy String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  creator    User                    @relation("OrgCreator", fields: [createdBy], references: [id])
+  members    UserOrganizationRole[]
+  roles      Role[]
+  subscriptions Subscription[]
+  payments   Payment[]
+}
+
+model UserOrganizationRole {
+  id             String   @id @default(uuid())
+  userId         String
+  organizationId String
+  roleId         String
+  joinedAt       DateTime @default(now())
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  role         Role         @relation(fields: [roleId], references: [id])
+
+  @@unique([userId, organizationId])
+}
+
+// ============ Permission ============
+
+model Application {
+  id          String   @id @default(uuid())
+  name        String
+  key         String   @unique
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  modules Module[]
+}
+
+model Module {
+  id            String   @id @default(uuid())
+  applicationId String
+  name          String
+  key           String
+  description   String?
+  sortOrder     Int      @default(0)
+
+  application Application  @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  permissions Permission[]
+
+  @@unique([applicationId, key])
+}
+
+model Permission {
+  id          String @id @default(uuid())
+  moduleId    String
+  action      String // create, read, update, delete, manage
+  description String?
+
+  module      Module          @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  rolePermissions RolePermission[]
+
+  @@unique([moduleId, action])
+}
+
+model Role {
+  id             String   @id @default(uuid())
+  organizationId String
+  name           String
+  isSystem       Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  organization   Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  rolePermissions RolePermission[]
+  userOrgRoles   UserOrganizationRole[]
+
+  @@unique([organizationId, name])
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+}
+
+// ============ Subscription ============
+
+model SubscriptionPlan {
+  id             String  @id @default(uuid())
+  name           String
+  stripePriceId  String?
+  billingPeriod  String? // monthly, yearly
+  amountCents    Int     @default(0)
+  currency       String  @default("usd")
+  features       Json    @default("[]")
+  sortOrder      Int     @default(0)
+
+  subscriptions Subscription[]
+}
+
+model Subscription {
+  id                   String    @id @default(uuid())
+  organizationId       String
+  planId               String
+  stripeSubscriptionId String?
+  status               String    @default("active") // active, past_due, canceled, expired
+  currentPeriodStart   DateTime
+  currentPeriodEnd     DateTime
+  canceledAt           DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  organization Organization      @relation(fields: [organizationId], references: [id])
+  plan         SubscriptionPlan  @relation(fields: [planId], references: [id])
+  payments     Payment[]
+
+  @@index([organizationId])
+}
+
+model Payment {
+  id              String    @id @default(uuid())
+  organizationId  String
+  subscriptionId  String?
+  stripeInvoiceId String?
+  amountCents     Int
+  currency        String    @default("usd")
+  status          String    @default("succeeded") // succeeded, failed, refunded
+  paidAt          DateTime?
+  createdAt       DateTime  @default(now())
+
+  organization  Organization  @relation(fields: [organizationId], references: [id])
+  subscription  Subscription? @relation(fields: [subscriptionId], references: [id])
+}

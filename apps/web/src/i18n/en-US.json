@@ -1,0 +1,42 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "search": "Search"
+  },
+  "auth": {
+    "login": "Log in",
+    "register": "Register",
+    "email": "Email",
+    "password": "Password",
+    "name": "Name",
+    "loginTitle": "Welcome back",
+    "loginDesc": "Sign in to your account to continue",
+    "registerTitle": "Create account",
+    "registerDesc": "Start building your SaaS application",
+    "forgotPassword": "Forgot password?",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "loginButton": "Sign in",
+    "registerButton": "Create account"
+  },
+  "sidebar": {
+    "dashboard": "Dashboard",
+    "projects": "Projects",
+    "settings": "Settings",
+    "members": "Members",
+    "organization": "Organization",
+    "billing": "Billing"
+  },
+  "organization": {
+    "title": "Organization",
+    "create": "Create Organization",
+    "name": "Organization Name",
+    "slug": "Organization Slug",
+    "members": "Members",
+    "invite": "Invite Member"
+  }
+}

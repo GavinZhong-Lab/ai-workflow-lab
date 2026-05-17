@@ -1,0 +1,42 @@
+{
+  "common": {
+    "loading": "加载中...",
+    "save": "保存",
+    "cancel": "取消",
+    "delete": "删除",
+    "confirm": "确认",
+    "search": "搜索"
+  },
+  "auth": {
+    "login": "登录",
+    "register": "注册",
+    "email": "邮箱",
+    "password": "密码",
+    "name": "姓名",
+    "loginTitle": "欢迎回来",
+    "loginDesc": "登录您的账户以继续",
+    "registerTitle": "创建账户",
+    "registerDesc": "开始构建您的 SaaS 应用",
+    "forgotPassword": "忘记密码？",
+    "noAccount": "还没有账户？",
+    "hasAccount": "已有账户？",
+    "loginButton": "登录",
+    "registerButton": "创建账户"
+  },
+  "sidebar": {
+    "dashboard": "工作台",
+    "projects": "项目",
+    "settings": "设置",
+    "members": "成员管理",
+    "organization": "组织",
+    "billing": "订阅与账单"
+  },
+  "organization": {
+    "title": "组织",
+    "create": "创建组织",
+    "name": "组织名称",
+    "slug": "组织标识",
+    "members": "成员",
+    "invite": "邀请成员"
+  }
+}

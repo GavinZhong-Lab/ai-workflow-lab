@@ -71,6 +71,9 @@ venv/
 *.egg-info/
 .eggs/
 
+# --- Claude Code ---
+.claude/
+
 # --- 临时文件 ---
 tmp/
 temp/

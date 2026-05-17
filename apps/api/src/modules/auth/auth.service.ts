@@ -35,14 +35,16 @@ export class AuthService {
         },
       });
 
-      let ownerRole = await tx.role.findFirst({
-        where: { organizationId: org.id, isSystem: true, name: 'Owner' },
+      // 创建系统角色 Owner/Admin/Member
+      const ownerRole = await tx.role.create({
+        data: { organizationId: org.id, name: 'Owner', isSystem: true },
       });
-      if (!ownerRole) {
-        ownerRole = await tx.role.create({
-          data: { organizationId: org.id, name: 'Owner', isSystem: true },
-        });
-      }
+      await tx.role.create({
+        data: { organizationId: org.id, name: 'Admin', isSystem: true },
+      });
+      await tx.role.create({
+        data: { organizationId: org.id, name: 'Member', isSystem: true },
+      });
 
       await tx.userOrganizationRole.create({
         data: { userId: user.id, organizationId: org.id, roleId: ownerRole.id },

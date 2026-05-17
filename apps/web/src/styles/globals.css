@@ -48,6 +48,14 @@
     border-radius: var(--radius);
   }
 
+  /* Sidebar 始终使用深色主题，不受亮色模式影响 */
+  .glass-surface-dark {
+    background: rgb(26 33 54 / 0.95);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgb(42 51 75 / 0.6);
+    border-radius: var(--radius);
+  }
+
   .btn-primary {
     background: rgb(var(--color-accent));
     color: #0f1526;

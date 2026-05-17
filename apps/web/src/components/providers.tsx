@@ -6,7 +6,16 @@
 
 import { ThemeProvider } from 'next-themes';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuthStore } from '@/stores/auth';
+import { setTokenGetter } from '@/lib/api';
+
+function AuthTokenSync() {
+  useEffect(() => {
+    setTokenGetter(() => useAuthStore.getState().accessToken);
+  }, []);
+  return null;
+}
 
 /** 客户端全局 Provider 包装器 */
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -25,6 +34,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <AuthTokenSync />
         {children}
       </ThemeProvider>
     </QueryClientProvider>

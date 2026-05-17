@@ -1,6 +1,6 @@
 /**
  * 路由守卫 Hook
- * 未登录用户自动跳转到登录页
+ * 等待 Zustand persist rehydration 完成后再检查认证状态
  */
 'use client';
 
@@ -12,12 +12,14 @@ import { useAuthStore } from '@/stores/auth';
 export function useAuthGuard(locale: string) {
   const router = useRouter();
   const accessToken = useAuthStore((s) => s.accessToken);
+  const hydrated = useAuthStore((s) => s.hydrated);
 
   useEffect(() => {
-    if (!accessToken) {
+    if (hydrated && !accessToken) {
       router.push(`/${locale}/login`);
     }
-  }, [accessToken, locale, router]);
+  }, [hydrated, accessToken, locale, router]);
 
-  return { isAuthenticated: !!accessToken };
+  // 尚未 rehydrate 完成时当作已认证（不跳转），rehydrate 后检查
+  return { isAuthenticated: !hydrated || !!accessToken };
 }

@@ -1,18 +1,17 @@
 /**
  * 侧边栏导航组件
- * 显示 Logo、主导航菜单、当前用户信息
- * 使用 glass-morphism 风格 + 活跃指示器动画
+ * 桌面端固定左侧，移动端 overlay drawer
  */
 'use client';
 
 import { useTranslations } from '@/hooks/use-translations';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/cn';
 import { useAuthStore } from '@/stores/auth';
+import { useEffect } from 'react';
 
-/** 导航菜单项定义 */
 const navItems = [
   { key: 'dashboard', href: '/dashboard', icon: DashboardIcon },
   { key: 'projects', href: '/projects', icon: ProjectsIcon },
@@ -21,17 +20,32 @@ const navItems = [
   { key: 'settings', href: '/settings', icon: SettingsIcon },
 ];
 
-/** 侧边栏组件 */
-export function Sidebar({ locale }: { locale: string }) {
+interface SidebarProps {
+  locale: string;
+  mobileOpen?: boolean;
+  onClose?: () => void;
+}
+
+export function Sidebar({ locale, mobileOpen, onClose }: SidebarProps) {
   const t = useTranslations('sidebar');
   const pathname = usePathname();
   const user = useAuthStore((s) => s.user);
 
-  return (
-    <aside className="w-64 h-screen flex flex-col glass-surface rounded-none border-t-0 border-b-0 border-l-0">
-      {/* Logo 区域 */}
-      <div className="h-16 flex items-center px-6 border-b border-ink-800/50">
-        <Link href={`/${locale}/dashboard`} className="flex items-center gap-3 group">
+  // 移动端打开时禁止 body 滚动
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [mobileOpen]);
+
+  const sidebarContent = (
+    <aside className="w-64 h-full flex flex-col glass-surface-dark rounded-none border-t-0 border-b-0 border-l-0">
+      {/* Logo */}
+      <div className="h-16 flex items-center px-6 border-b border-ink-800/50 shrink-0">
+        <Link href={`/${locale}/dashboard`} className="flex items-center gap-3 group" onClick={onClose}>
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-ink-950 font-bold text-sm shadow-lg shadow-amber-500/20">
             S
           </div>
@@ -39,7 +53,7 @@ export function Sidebar({ locale }: { locale: string }) {
         </Link>
       </div>
 
-      {/* 主导航 */}
+      {/* 导航 */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         {navItems.map((item) => {
           const href = `/${locale}${item.href}`;
@@ -48,6 +62,7 @@ export function Sidebar({ locale }: { locale: string }) {
             <Link
               key={item.key}
               href={href}
+              onClick={onClose}
               className={cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200',
                 isActive
@@ -69,24 +84,56 @@ export function Sidebar({ locale }: { locale: string }) {
       </nav>
 
       {/* 用户信息 */}
-      <div className="p-3 border-t border-ink-800/50">
+      <div className="p-3 border-t border-ink-800/50 shrink-0">
         <div className="flex items-center gap-3 px-3 py-2">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-ink-600 to-ink-700 flex items-center justify-center text-xs font-medium text-ink-300 ring-1 ring-ink-700">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-ink-600 to-ink-700 flex items-center justify-center text-xs font-medium text-ink-300 ring-1 ring-ink-700 shrink-0">
             {user?.name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || '?'}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-ink-200 truncate">
-              {user?.name || user?.email}
-            </p>
+            <p className="text-sm font-medium text-ink-200 truncate">{user?.name || user?.email}</p>
             <p className="text-xs text-ink-500 truncate">{user?.email}</p>
           </div>
         </div>
       </div>
     </aside>
   );
+
+  return (
+    <>
+      {/* 桌面端 — 固定左侧 */}
+      <div className="hidden lg:block h-screen shrink-0">{sidebarContent}</div>
+
+      {/* 移动端 — overlay drawer */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <>
+            {/* 遮罩 */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-40 bg-black/60 lg:hidden"
+              onClick={onClose}
+            />
+            {/* 抽屉 */}
+            <motion.div
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', damping: 26, stiffness: 300 }}
+              className="fixed left-0 top-0 z-50 h-full lg:hidden"
+            >
+              {sidebarContent}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </>
+  );
 }
 
-// ---- 侧边栏图标组件 ----
+// ---- 图标组件 ----
 
 function DashboardIcon({ active }: { active: boolean }) {
   return (

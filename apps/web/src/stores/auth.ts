@@ -18,9 +18,11 @@ interface AuthState {
   refreshToken: string | null;
   user: User | null;
   orgId: string | null;
+  hydrated: boolean;
   setAuth: (accessToken: string, refreshToken: string, user: User, orgId?: string) => void;
   setOrgId: (orgId: string) => void;
   logout: () => void;
+  setHydrated: (hydrated: boolean) => void;
 }
 
 /** 认证状态 Store */
@@ -31,20 +33,23 @@ export const useAuthStore = create<AuthState>()(
       refreshToken: null,
       user: null,
       orgId: null,
+      hydrated: false,
 
-      /** 登录/注册成功后设置认证状态 */
       setAuth: (accessToken, refreshToken, user, orgId) =>
         set({ accessToken, refreshToken, user, orgId: orgId || null }),
 
-      /** 切换当前工作组织 */
       setOrgId: (orgId) => set({ orgId }),
 
-      /** 登出，清除所有认证信息 */
       logout: () =>
         set({ accessToken: null, refreshToken: null, user: null, orgId: null }),
+
+      setHydrated: (hydrated) => set({ hydrated }),
     }),
     {
       name: 'saas-auth',
+      onRehydrateStorage: () => (state) => {
+        state?.setHydrated(true);
+      },
     },
   ),
 );

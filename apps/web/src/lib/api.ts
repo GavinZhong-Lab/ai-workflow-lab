@@ -1,16 +1,19 @@
 /**
  * API 请求客户端
- * 封装 fetch，自动处理 JWT Token、JSON 解析、错误抛出
+ * 封装 fetch，自动从 Zustand 读取 JWT Token、JSON 解析、错误抛出
  */
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
-interface RequestOptions extends RequestInit {
-  token?: string;
+let getToken: () => string | null = () => null;
+
+/** 注册 token 获取函数（由 Provider 层注入，避免循环依赖） */
+export function setTokenGetter(fn: () => string | null) {
+  getToken = fn;
 }
 
 /** API 错误类，携带业务错误码 */
-class ApiError extends Error {
+export class ApiError extends Error {
   code: number;
   constructor(code: number, message: string) {
     super(message);
@@ -19,22 +22,18 @@ class ApiError extends Error {
 }
 
 /** 通用请求方法 */
-async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { token, ...fetchOptions } = options;
-
+async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...((fetchOptions.headers as Record<string, string>) || {}),
+    ...(options.headers as Record<string, string> || {}),
   };
 
+  const token = getToken();
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${API_BASE}${path}`, {
-    ...fetchOptions,
-    headers,
-  });
+  const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
 
   const json = await res.json();
 
@@ -47,16 +46,12 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 
 /** API 请求对象 */
 export const api = {
-  get: <T>(path: string, token?: string) =>
-    request<T>(path, { method: 'GET', token }),
-  post: <T>(path: string, body?: unknown, token?: string) =>
-    request<T>(path, { method: 'POST', body: JSON.stringify(body), token }),
-  patch: <T>(path: string, body?: unknown, token?: string) =>
-    request<T>(path, { method: 'PATCH', body: JSON.stringify(body), token }),
-  put: <T>(path: string, body?: unknown, token?: string) =>
-    request<T>(path, { method: 'PUT', body: JSON.stringify(body), token }),
-  delete: <T>(path: string, token?: string) =>
-    request<T>(path, { method: 'DELETE', token }),
+  get: <T>(path: string) => request<T>(path, { method: 'GET' }),
+  post: <T>(path: string, body?: unknown) =>
+    request<T>(path, { method: 'POST', body: JSON.stringify(body) }),
+  patch: <T>(path: string, body?: unknown) =>
+    request<T>(path, { method: 'PATCH', body: JSON.stringify(body) }),
+  put: <T>(path: string, body?: unknown) =>
+    request<T>(path, { method: 'PUT', body: JSON.stringify(body) }),
+  delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
 };
-
-export { ApiError };

@@ -19,6 +19,10 @@ TypeScript · Next.js · Python · OpenAI API · Automation Tools
 2. **方案审查** → 输出设计方案后，等待我审查确认
 3. **审查通过后** → 方可开始编码实现
 
+### 项目总规划文件
+1. 文件目录`/docs/项目总规划.md`
+2. 每次决策修改、关键设计，需要更新这个文件
+
 ### frontend aesthetics
 You tend to converge toward generic, "on distribution" outputs. In frontend design, this creates what users call the "AI slop" aesthetic. Avoid this: make creative, distinctive frontends that surprise and delight. Focus on:
  
@@ -74,27 +78,20 @@ You tend to converge toward generic, "on distribution" outputs. In frontend desi
 - [x] 权限管理系统 — RBAC 四级权限 API 已实现
 - [x] 订阅付款系统 — 设计文档已完成，Paddle Billing 方案已定，待编码集成
 - [x] 前端框架搭建 — Next.js 14 + 主题 + i18n + 响应式布局
+- [x] **第一阶段前端页面** — Dashboard/Members/Settings 完整实现，前后端全链路可测试
 - [x] 本地开发环境 — Docker 29.5.0 + Colima + PostgreSQL 16 + Redis 8 + MinIO
 - [x] Docker 服务 — docker-compose 启动 postgres/redis/minio 容器，全部 healthy
 - [ ] 部署运维 — Docker Compose 已配置，CI/CD 待实现
+- [ ] 订阅付款集成 — Paddle Checkout + Webhook + 升级降级
 
 ## 最近完成的工作
 
+- 2026-05-17: 第一阶段前端页面完成 — Dashboard/Members/Settings 全链路可测试
+- 2026-05-17: 响应式布局 — 移动端 Sidebar drawer + 汉堡菜单 + 遮罩动画
+- 2026-05-17: Header 接入 Dashboard 布局 — 主题切换/语言切换/用户菜单
+- 2026-05-17: API Client 自动注入 JWT Token — 无需手动传 token
+- 2026-05-17: Auth Guard 路由保护 — 未登录自动跳转登录页
 - 2026-05-17: 环境验证通过 — Docker + Colima + PostgreSQL + Redis + MinIO 全部 running healthy
-- 2026-05-17: 前后端服务启动验证通过，Dashboard 页面完整渲染
-- 2026-05-17: 支付方案迁移 Stripe → Paddle（.env / config / routes / swagger）
-- 2026-05-17: 订阅付款设计文档输出（业务逻辑/技术方案/数据模型）
-- 2026-05-17: 提交全部代码（79 文件 / 7038 行），commit: feat: implement SaaS base platform
-- 2026-05-17: 安装 Colima（Docker 轻量运行时）
-- 2026-05-17: 安装 PostgreSQL 16.14 + Redis 8.6.3（brew）
-- 2026-05-17: 完成 monorepo 项目搭建（pnpm + Turborepo）
-- 2026-05-17: 完成后端 API 全部模块（auth/user/organization/permission）
-- 2026-05-17: 完成 Prisma Schema 设计 + 种子数据脚本
-- 2026-05-17: 完成前端框架搭建（Next.js 14 + TailwindCSS + Framer Motion）
-- 2026-05-17: 完成登录/注册/Dashboard 页面 + 深色主题 UI
-- 2026-05-17: 修复全部 TypeScript 类型错误，前后端 tsc 零错误
-- 2026-05-17: 前后端服务器启动验证通过（localhost:3000 / localhost:4000）
-- 2026-05-17: 支付方案决策：放弃 Stripe，改用 Paddle Billing（微信+支付宝+卡+PayPal）
 
 ## 下一步计划
 

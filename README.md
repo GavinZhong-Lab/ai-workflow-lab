@@ -12,7 +12,7 @@ AI-native SaaS 基础框架 — 可复用的多租户 SaaS 应用平台，提供
 | 缓存 | Redis 7 |
 | 文件存储 | MinIO (S3 兼容) |
 | 认证 | JWT (Access + Refresh Token) |
-| 支付 | Stripe |
+| 支付 | Paddle Billing（微信/支付宝/信用卡/PayPal） |
 | 基础设施 | pnpm Workspace · Turborepo · Docker Compose |
 
 ## 项目结构

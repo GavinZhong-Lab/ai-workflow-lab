@@ -121,6 +121,9 @@ export interface RoleInfo {
 /** 计费周期 */
 export type BillingPeriod = 'monthly' | 'yearly';
 
+/** 支付方式 */
+export type PaymentMethod = 'wechat_pay' | 'alipay' | 'card' | 'paypal';
+
 /** 订阅计划信息 */
 export interface PlanInfo {
   id: string;
@@ -135,7 +138,31 @@ export interface PlanInfo {
 export interface SubscriptionInfo {
   id: string;
   planName: string;
-  status: 'active' | 'past_due' | 'canceled' | 'expired';
+  status: 'active' | 'past_due' | 'canceled' | 'expired' | 'trialing';
   currentPeriodStart: string;
   currentPeriodEnd: string;
+  canceledAt: string | null;
+}
+
+/** 支付记录 */
+export interface PaymentInfo {
+  id: string;
+  amountCents: number;
+  currency: string;
+  paymentMethod: PaymentMethod | null;
+  status: 'succeeded' | 'failed' | 'refunded';
+  paidAt: string | null;
+  createdAt: string;
+}
+
+/** 发票信息 */
+export interface InvoiceInfo {
+  id: string;
+  invoiceNumber: string;
+  amountCents: number;
+  currency: string;
+  status: string;
+  invoiceUrl: string | null;
+  issuedAt: string;
+  paidAt: string | null;
 }

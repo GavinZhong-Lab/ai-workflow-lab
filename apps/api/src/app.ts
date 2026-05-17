@@ -4,7 +4,9 @@
  */
 import express, { type Express } from 'express';
 import cors from 'cors';
+import swaggerUi from 'swagger-ui-express';
 import { env } from './config/index.js';
+import { swaggerSpec } from './config/swagger.js';
 import { errorHandler } from './middleware/error-handler.js';
 import { authRouter } from './modules/auth/auth.routes.js';
 import { userRouter } from './modules/user/user.routes.js';
@@ -18,10 +20,25 @@ export function createApp(): Express {
   app.use(cors({ origin: env.APP_URL, credentials: true }));
   app.use(express.json());
 
-  // 健康检查
+  /**
+   * @openapi
+   * /api/health:
+   *   get:
+   *     tags: [System]
+   *     summary: 健康检查
+   *     responses:
+   *       200:
+   *         description: OK
+   */
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
   });
+
+  // API 文档
+  app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+    customCss: '.swagger-ui .topbar { display: none }',
+    customSiteTitle: 'SaaS Platform API Docs',
+  }));
 
   // 业务路由
   app.use('/api/v1/auth', authRouter);

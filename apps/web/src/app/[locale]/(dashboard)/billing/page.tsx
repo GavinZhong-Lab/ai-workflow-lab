@@ -1,6 +1,6 @@
 /**
  * Billing 页面（占位）
- * 后续实现 Stripe 订阅管理和发票展示
+ * 后续实现 Paddle Billing 订阅管理和发票展示
  */
 'use client';
 

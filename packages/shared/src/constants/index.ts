@@ -69,4 +69,13 @@ export const SubscriptionStatus = {
   PAST_DUE: 'past_due',
   CANCELED: 'canceled',
   EXPIRED: 'expired',
+  TRIALING: 'trialing',
+} as const;
+
+/** 支付方式 */
+export const PaymentMethod = {
+  WECHAT_PAY: 'wechat_pay',
+  ALIPAY: 'alipay',
+  CARD: 'card',
+  PAYPAL: 'paypal',
 } as const;

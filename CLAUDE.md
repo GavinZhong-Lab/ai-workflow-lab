@@ -72,12 +72,21 @@ You tend to converge toward generic, "on distribution" outputs. In frontend desi
 - [x] SaaS 基础框架搭建 — 整体架构已实现
 - [x] 用户管理系统 — 注册/登录/JWT/个人信息 API 已实现
 - [x] 权限管理系统 — RBAC 四级权限 API 已实现
-- [ ] 订阅付款系统 — 数据模型已建，Stripe 集成待实现
+- [x] 订阅付款系统 — 设计文档已完成，Paddle Billing 方案已定，待编码集成
 - [x] 前端框架搭建 — Next.js 14 + 主题 + i18n + 响应式布局
+- [x] 本地开发环境 — Docker 29.5.0 + Colima + PostgreSQL 16 + Redis 8 + MinIO
+- [x] Docker 服务 — docker-compose 启动 postgres/redis/minio 容器，全部 healthy
 - [ ] 部署运维 — Docker Compose 已配置，CI/CD 待实现
 
 ## 最近完成的工作
 
+- 2026-05-17: 环境验证通过 — Docker + Colima + PostgreSQL + Redis + MinIO 全部 running healthy
+- 2026-05-17: 前后端服务启动验证通过，Dashboard 页面完整渲染
+- 2026-05-17: 支付方案迁移 Stripe → Paddle（.env / config / routes / swagger）
+- 2026-05-17: 订阅付款设计文档输出（业务逻辑/技术方案/数据模型）
+- 2026-05-17: 提交全部代码（79 文件 / 7038 行），commit: feat: implement SaaS base platform
+- 2026-05-17: 安装 Colima（Docker 轻量运行时）
+- 2026-05-17: 安装 PostgreSQL 16.14 + Redis 8.6.3（brew）
 - 2026-05-17: 完成 monorepo 项目搭建（pnpm + Turborepo）
 - 2026-05-17: 完成后端 API 全部模块（auth/user/organization/permission）
 - 2026-05-17: 完成 Prisma Schema 设计 + 种子数据脚本
@@ -85,10 +94,11 @@ You tend to converge toward generic, "on distribution" outputs. In frontend desi
 - 2026-05-17: 完成登录/注册/Dashboard 页面 + 深色主题 UI
 - 2026-05-17: 修复全部 TypeScript 类型错误，前后端 tsc 零错误
 - 2026-05-17: 前后端服务器启动验证通过（localhost:3000 / localhost:4000）
+- 2026-05-17: 支付方案决策：放弃 Stripe，改用 Paddle Billing（微信+支付宝+卡+PayPal）
 
 ## 下一步计划
 
-1. 集成 Stripe 支付，实现订阅/付款完整流程
+1. 实现 Paddle Billing 订阅支付（Checkout + Webhook + 升级降级）
 2. 实现 OAuth 第三方登录（Google / GitHub）
 3. 后端 API 集成测试 + 前端 E2E 测试
 4. 前端 Dashboard/Members/Billing 页面完整功能实现
@@ -102,6 +112,8 @@ You tend to converge toward generic, "on distribution" outputs. In frontend desi
 | 2026-05-17 | 前端用自研 i18n Hook 替代 next-intl | next-intl v3 配置复杂，自定义方案更可控 |
 | 2026-05-17 | 前端深色主题 ink+amber 配色 | 避免 AI slop，创造独特视觉识别 |
 | 2026-05-17 | 字体选 DM Serif Display + DM Sans + JetBrains Mono | 避免 Inter/Roboto 等通用字体 |
+| 2026-05-17 | 用 Colima + 本地安装替代 Docker Desktop | Docker Desktop 下载源 DNS 无法解析；Colima 二进制可直装，PostgreSQL/Redis 直接 brew 安装更稳定 |
+| 2026-05-17 | 废弃 Stripe，改用 Paddle Billing | Paddle 原生支持微信支付/支付宝，作为 MoR 承担全球税务合规，网络可达性好 |
 
 ## 项目文档索引
 

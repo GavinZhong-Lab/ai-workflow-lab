@@ -22,12 +22,12 @@ export const updateOrgSchema = z.object({
 /** 邀请成员校验 */
 export const inviteMemberSchema = z.object({
   email: z.string().email(),
-  roleId: z.string().uuid(),
+  roleId: z.string().min(1),
 });
 
 /** 修改成员角色校验 */
 export const updateMemberRoleSchema = z.object({
-  roleId: z.string().uuid(),
+  roleId: z.string().min(1),
 });
 
 export type CreateOrgInput = z.infer<typeof createOrgSchema>;

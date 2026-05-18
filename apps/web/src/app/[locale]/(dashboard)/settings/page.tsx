@@ -20,7 +20,10 @@ export default function SettingsPage() {
   const router = useRouter();
   const pathname = usePathname();
 
+  const [mounted, setMounted] = useState(false);
   const [name, setName] = useState(user?.name || '');
+
+  useEffect(() => setMounted(true), []);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [msgType, setMsgType] = useState<'success' | 'error'>('success');
@@ -131,7 +134,7 @@ export default function SettingsPage() {
                 type="button"
                 onClick={() => setTheme(mode)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
-                  theme === mode
+                  mounted && theme === mode
                     ? 'bg-amber-500/10 text-amber-500 border-amber-500/30'
                     : 'border-[rgb(var(--color-border))] text-[rgb(var(--color-text-muted))] hover:bg-ink-800/30'
                 }`}

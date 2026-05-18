@@ -69,6 +69,7 @@ model Organization {
   creator    User                    @relation("OrgCreator", fields: [createdBy], references: [id])
   members    UserOrganizationRole[]
   roles      Role[]
+  invitations Invitation[]
   subscriptions Subscription[]
   payments   Payment[]
 }
@@ -85,6 +86,28 @@ model UserOrganizationRole {
   role         Role         @relation(fields: [roleId], references: [id])
 
   @@unique([userId, organizationId])
+}
+
+// ============ Invitations ============
+
+model Invitation {
+  id             String    @id @default(uuid())
+  organizationId String
+  email          String
+  roleId         String
+  token          String    @unique
+  invitedBy      String
+  status         String    @default("pending") // pending, accepted, cancelled, expired
+  expiresAt      DateTime
+  createdAt      DateTime  @default(now())
+  acceptedAt     DateTime?
+
+  role         Role          @relation(fields: [roleId], references: [id])
+  organization Organization  @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId])
+  @@index([token])
+  @@index([email, organizationId])
 }
 
 // ============ Permission ============
@@ -136,6 +159,7 @@ model Role {
   organization   Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   rolePermissions RolePermission[]
   userOrgRoles   UserOrganizationRole[]
+  invitations    Invitation[]
 
   @@unique([organizationId, name])
 }

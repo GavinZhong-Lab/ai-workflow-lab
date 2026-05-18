@@ -4,17 +4,19 @@
  */
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslations } from '@/hooks/use-translations';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth';
+import { Suspense } from 'react';
 
-export default function RegisterPage({ params }: { params: { locale: string } }) {
+function RegisterForm({ params }: { params: { locale: string } }) {
   const t = useTranslations('auth');
   const router = useRouter();
+  const searchParams = useSearchParams();
   const setAuth = useAuthStore((s) => s.setAuth);
 
   const [name, setName] = useState('');
@@ -22,6 +24,11 @@ export default function RegisterPage({ params }: { params: { locale: string } })
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [joinedOrgName, setJoinedOrgName] = useState<string | null>(null);
+  const invitationToken = searchParams.get('invitationToken');
+
+  // 预填邀请邮箱（如果有 token）
+  const prefilled = useRef(false);
 
   /** 处理注册表单提交 */
   const handleRegister = async (e: React.FormEvent) => {
@@ -30,15 +37,27 @@ export default function RegisterPage({ params }: { params: { locale: string } })
     setLoading(true);
 
     try {
+      const body: Record<string, string> = { name, email, password };
+      if (invitationToken) {
+        body.invitationToken = invitationToken;
+      }
+
       const res = await api.post<{
         data: {
           user: { id: string; email: string; name: string | null };
           tokens: { accessToken: string; refreshToken: string };
+          joinedOrg?: boolean;
         };
-      }>('/api/v1/auth/register', { name, email, password });
+      }>('/api/v1/auth/register', body);
 
       setAuth(res.data.tokens.accessToken, res.data.tokens.refreshToken, res.data.user);
-      router.push(`/${params.locale}/dashboard`);
+
+      if (res.data.joinedOrg) {
+        setJoinedOrgName('the organization');
+        setTimeout(() => router.push(`/${params.locale}/dashboard`), 1500);
+      } else {
+        router.push(`/${params.locale}/dashboard`);
+      }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Registration failed');
     } finally {
@@ -61,12 +80,24 @@ export default function RegisterPage({ params }: { params: { locale: string } })
             transition={{ duration: 0.7 }}
           >
             <h1 className="font-display text-5xl text-white leading-tight">
-              Start your
-              <br />
-              <span className="text-amber-500">journey</span>
+              {invitationToken ? (
+                <>
+                  You&apos;re
+                  <br />
+                  <span className="text-amber-500">invited</span>
+                </>
+              ) : (
+                <>
+                  Start your
+                  <br />
+                  <span className="text-amber-500">journey</span>
+                </>
+              )}
             </h1>
             <p className="mt-6 text-lg text-ink-300 max-w-md leading-relaxed">
-              Create your free account and start building your SaaS application with all the tools you need.
+              {invitationToken
+                ? 'Create your account to join the organization and start collaborating with your team.'
+                : 'Create your free account and start building your SaaS application with all the tools you need.'}
             </p>
           </motion.div>
         </div>
@@ -82,6 +113,26 @@ export default function RegisterPage({ params }: { params: { locale: string } })
         >
           <h2 className="font-display text-3xl text-white">{t('registerTitle')}</h2>
           <p className="mt-2 text-ink-400">{t('registerDesc')}</p>
+
+          {invitationToken && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="mt-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 text-sm"
+            >
+              You are accepting an invitation. Your account will be added to the organization automatically.
+            </motion.div>
+          )}
+
+          {joinedOrgName && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="mt-4 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm"
+            >
+              Account created! You have joined {joinedOrgName}. Redirecting...
+            </motion.div>
+          )}
 
           {error && (
             <motion.div
@@ -156,5 +207,13 @@ export default function RegisterPage({ params }: { params: { locale: string } })
         </motion.div>
       </div>
     </div>
+  );
+}
+
+export default function RegisterPage({ params }: { params: { locale: string } }) {
+  return (
+    <Suspense>
+      <RegisterForm params={params} />
+    </Suspense>
   );
 }

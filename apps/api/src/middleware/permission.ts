@@ -36,7 +36,7 @@ export function requirePermission(applicationKey: string, moduleKey: string, act
           },
         },
         permission: {
-          action,
+          action: { in: [action, 'manage'] },
           module: {
             key: moduleKey,
             application: {

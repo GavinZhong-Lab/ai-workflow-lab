@@ -4,6 +4,7 @@
  */
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useTheme } from 'next-themes';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth';
@@ -14,8 +15,11 @@ interface HeaderProps {
 }
 
 export function Header({ onMenuToggle }: HeaderProps) {
+  const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
   const router = useRouter();
+
+  useEffect(() => setMounted(true), []);
   const pathname = usePathname();
   const t = useTranslations('common');
   const user = useAuthStore((s) => s.user);
@@ -38,13 +42,13 @@ export function Header({ onMenuToggle }: HeaderProps) {
   const currentLocale = pathname.split('/')[1] || 'zh-CN';
 
   return (
-    <header className="h-16 flex items-center justify-between px-4 lg:px-6 border-b border-ink-800/50 bg-[rgb(var(--color-bg))]">
+    <header className="h-16 flex items-center justify-between px-4 lg:px-6 border-b border-[rgb(var(--color-border))] bg-[rgb(var(--color-bg))]">
       <div className="flex items-center gap-3">
         {/* 移动端汉堡按钮 */}
         {onMenuToggle && (
           <button
             onClick={onMenuToggle}
-            className="lg:hidden p-2 rounded-lg hover:bg-ink-800/40 text-ink-400 hover:text-ink-200 transition-colors"
+            className="lg:hidden p-2 rounded-lg hover:bg-[rgb(var(--color-border))] text-[rgb(var(--color-text-muted))] hover:text-[rgb(var(--color-text))] transition-colors"
             aria-label="Toggle menu"
           >
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
@@ -56,20 +60,20 @@ export function Header({ onMenuToggle }: HeaderProps) {
         {/* 主题切换 */}
         <button
           onClick={toggleTheme}
-          className="p-2 rounded-lg hover:bg-ink-800/40 text-ink-400 hover:text-ink-200 transition-colors"
-          title={theme === 'dark' ? 'Switch to light' : 'Switch to dark'}
+          className="p-2 rounded-lg hover:bg-[rgb(var(--color-border))] text-[rgb(var(--color-text-muted))] hover:text-[rgb(var(--color-text))] transition-colors"
+          title={mounted && theme === 'dark' ? 'Switch to light' : 'Switch to dark'}
         >
-          {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+          {mounted && theme === 'dark' ? <SunIcon /> : <MoonIcon />}
         </button>
 
         {/* 语言切换 */}
-        <div className="flex items-center gap-1 bg-ink-800/30 rounded-lg p-0.5">
+        <div className="flex items-center gap-1 bg-[rgb(var(--color-border))/30] rounded-lg p-0.5">
           <button
             onClick={() => switchLocale('zh-CN')}
             className={`px-2 py-1 text-xs font-medium rounded transition-colors ${
               currentLocale === 'zh-CN'
                 ? 'bg-amber-500/20 text-amber-500'
-                : 'text-ink-400 hover:text-ink-200'
+                : 'text-[rgb(var(--color-text-muted))] hover:text-[rgb(var(--color-text))]'
             }`}
           >
             中
@@ -79,7 +83,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
             className={`px-2 py-1 text-xs font-medium rounded transition-colors ${
               currentLocale === 'en-US'
                 ? 'bg-amber-500/20 text-amber-500'
-                : 'text-ink-400 hover:text-ink-200'
+                : 'text-[rgb(var(--color-text-muted))] hover:text-[rgb(var(--color-text))]'
             }`}
           >
             EN
@@ -90,14 +94,14 @@ export function Header({ onMenuToggle }: HeaderProps) {
       {/* 右侧：用户信息 + 退出 */}
       <div className="flex items-center gap-3">
         <div className="hidden sm:flex items-center gap-2">
-          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-ink-600 to-ink-700 flex items-center justify-center text-xs font-medium text-ink-300 ring-1 ring-ink-700">
+          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-amber-500/30 to-amber-600/30 flex items-center justify-center text-xs font-medium text-[rgb(var(--color-text))] ring-1 ring-[rgb(var(--color-border))]">
             {user?.name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || '?'}
           </div>
-          <span className="text-sm text-ink-300">{user?.name || user?.email}</span>
+          <span className="text-sm text-[rgb(var(--color-text))]">{user?.name || user?.email}</span>
         </div>
         <button
           onClick={handleLogout}
-          className="text-sm text-ink-400 hover:text-red-400 transition-colors px-2 py-1"
+          className="text-sm text-[rgb(var(--color-text-muted))] hover:text-red-400 transition-colors px-2 py-1"
         >
           {t('signOut')}
         </button>

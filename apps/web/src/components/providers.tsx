@@ -8,11 +8,12 @@ import { ThemeProvider } from 'next-themes';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/stores/auth';
-import { setTokenGetter } from '@/lib/api';
+import { setAuthStoreGetter } from '@/lib/api';
 
 function AuthTokenSync() {
   useEffect(() => {
-    setTokenGetter(() => useAuthStore.getState().accessToken);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    setAuthStoreGetter(() => useAuthStore as any);
   }, []);
   return null;
 }

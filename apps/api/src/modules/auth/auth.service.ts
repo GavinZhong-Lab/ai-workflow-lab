@@ -14,10 +14,29 @@ export class AuthService {
    * 用户注册
    * 创建用户 -> 创建默认组织 -> 分配 Owner 角色，事务保证原子性
    */
-  async register(email: string, password: string, name: string) {
+  async register(email: string, password: string, name: string, invitationToken?: string) {
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
       return { code: ErrorCode.EMAIL_ALREADY_EXISTS, data: null, message: 'Email already registered' };
+    }
+
+    // 验证邀请 token（如果提供）
+    let acceptOrgId: string | null = null;
+    if (invitationToken) {
+      const invitation = await prisma.invitation.findUnique({ where: { token: invitationToken } });
+      if (!invitation) {
+        return { code: ErrorCode.INVITATION_NOT_FOUND, data: null, message: 'Invalid invitation token' };
+      }
+      if (invitation.status !== 'pending') {
+        return { code: ErrorCode.INVITATION_ALREADY_ACCEPTED, data: null, message: 'Invitation is no longer valid' };
+      }
+      if (invitation.expiresAt < new Date()) {
+        return { code: ErrorCode.INVITATION_EXPIRED, data: null, message: 'Invitation has expired' };
+      }
+      if (invitation.email !== email) {
+        return { code: ErrorCode.INVITATION_EMAIL_MISMATCH, data: null, message: 'Email does not match the invitation' };
+      }
+      acceptOrgId = invitation.organizationId;
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
@@ -27,41 +46,65 @@ export class AuthService {
         data: { email, passwordHash, name },
       });
 
-      const org = await tx.organization.create({
-        data: {
-          name: `${name}'s Workspace`,
-          slug: `${user.id}-workspace`,
-          createdBy: user.id,
-        },
-      });
+      // 如果有邀请，加入邀请组织；否则创建个人 Workspace
+      let primaryOrgId: string;
 
-      // 创建系统角色 Owner/Admin/Member
-      const ownerRole = await tx.role.create({
-        data: { organizationId: org.id, name: 'Owner', isSystem: true },
-      });
-      await tx.role.create({
-        data: { organizationId: org.id, name: 'Admin', isSystem: true },
-      });
-      await tx.role.create({
-        data: { organizationId: org.id, name: 'Member', isSystem: true },
-      });
+      if (acceptOrgId && invitationToken) {
+        // 接受邀请：加入已有组织
+        const invitation = await tx.invitation.findUnique({ where: { token: invitationToken } });
+        if (invitation && invitation.status === 'pending') {
+          await tx.userOrganizationRole.create({
+            data: { userId: user.id, organizationId: invitation.organizationId, roleId: invitation.roleId },
+          });
+          await tx.invitation.update({
+            where: { id: invitation.id },
+            data: { status: 'accepted', acceptedAt: new Date() },
+          });
+          primaryOrgId = invitation.organizationId;
+        } else {
+          // 邀请已失效，回退到创建个人 Workspace
+          const fallbackOrg = await tx.organization.create({
+            data: { name: `${name}'s Workspace`, slug: `${user.id}-workspace`, createdBy: user.id },
+          });
+          const ownerRole = await tx.role.create({
+            data: { organizationId: fallbackOrg.id, name: 'Owner', isSystem: true },
+          });
+          await tx.role.create({ data: { organizationId: fallbackOrg.id, name: 'Admin', isSystem: true } });
+          await tx.role.create({ data: { organizationId: fallbackOrg.id, name: 'Member', isSystem: true } });
+          await tx.userOrganizationRole.create({
+            data: { userId: user.id, organizationId: fallbackOrg.id, roleId: ownerRole.id },
+          });
+          primaryOrgId = fallbackOrg.id;
+        }
+      } else {
+        // 无邀请：创建个人 Workspace
+        const org = await tx.organization.create({
+          data: { name: `${name}'s Workspace`, slug: `${user.id}-workspace`, createdBy: user.id },
+        });
+        const ownerRole = await tx.role.create({
+          data: { organizationId: org.id, name: 'Owner', isSystem: true },
+        });
+        await tx.role.create({ data: { organizationId: org.id, name: 'Admin', isSystem: true } });
+        await tx.role.create({ data: { organizationId: org.id, name: 'Member', isSystem: true } });
+        await tx.userOrganizationRole.create({
+          data: { userId: user.id, organizationId: org.id, roleId: ownerRole.id },
+        });
+        primaryOrgId = org.id;
+      }
 
-      await tx.userOrganizationRole.create({
-        data: { userId: user.id, organizationId: org.id, roleId: ownerRole.id },
-      });
-
-      return { user, org };
+      return { user, orgId: primaryOrgId };
     });
 
-    const tokens = this.generateTokens(result.user.id, result.org.id);
+    const tokens = this.generateTokens(result.user.id, result.orgId);
 
     return {
       code: ErrorCode.OK,
       data: {
         user: { id: result.user.id, email: result.user.email, name: result.user.name },
         tokens,
+        joinedOrg: acceptOrgId ? true : false,
       },
-      message: 'Registration successful',
+      message: acceptOrgId ? 'Registration successful — you have joined the organization' : 'Registration successful',
     };
   }
 

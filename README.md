@@ -91,6 +91,25 @@ pnpm dev
 
 启动后访问 http://localhost:3000
 
+### 一键启动（推荐）
+
+```bash
+bash dev-start.sh        # 启动全部服务
+bash dev-start.sh --stop # 停止全部服务
+```
+
+### 测试账号
+
+种子数据包含 3 个测试账号，密码均为 `Test123456`，同属 `Test Org` 组织：
+
+| 账号 | 角色 | 权限范围 |
+|------|------|---------|
+| `owner@test.com` | Owner | 全部权限（邀请/移除/改角色/查看） |
+| `admin@test.com` | Admin | 成员管理 CRUD + 组织查看/编辑 |
+| `member@test.com` | Member | 仅查看（成员/组织/Dashboard/Projects/Settings） |
+
+> 运行 `cd apps/api && pnpm db:seed` 即可初始化测试数据。
+
 ## API 接口
 
 | 模块 | 端点 | 说明 |
@@ -106,6 +125,9 @@ pnpm dev
 | Organizations | GET /api/v1/organizations/:id | 组织详情 |
 | Organizations | GET /api/v1/organizations/:id/members | 成员列表 |
 | Organizations | POST /api/v1/organizations/:id/members | 邀请成员 |
+| Organizations | GET /api/v1/organizations/:id/invitations | 待处理邀请 |
+| Organizations | DELETE /api/v1/organizations/:id/invitations/:invId | 取消邀请 |
+| Organizations | POST /api/v1/invitations/:token/accept | 接受邀请 |
 | Permissions | GET /api/v1/permissions/applications | 应用列表 |
 | Permissions | POST /api/v1/permissions/applications | 注册应用 |
 | Permissions | GET /api/v1/permissions/orgs/:id/roles | 角色列表 |

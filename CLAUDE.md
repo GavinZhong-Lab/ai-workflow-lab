@@ -65,27 +65,32 @@ You tend to converge toward generic, "on distribution" outputs. In frontend desi
 3. 列出未提交的更改
 
 当我说「继续开发」时，请执行：
-1. 读取 CLAUDE.md 了解当前进度
-2. 读取 docs/进度追踪.md
-3. 读取 docs/决策记录.md
-4. 读取 git log 查看最近的提交
-5. 总结当前状态并建议下一步
+1. 运行 `bash dev-start.sh` 一键启动开发环境（Docker + 前后端）
+2. 读取 CLAUDE.md 了解当前进度
+3. 读取 docs/进度追踪.md
+4. 读取 docs/决策记录.md
+5. 读取 git log 查看最近的提交
+6. 总结当前状态并建议下一步
 
 ## 当前进度
 
 - [x] SaaS 基础框架搭建 — 整体架构已实现
 - [x] 用户管理系统 — 注册/登录/JWT/个人信息 API 已实现
 - [x] 权限管理系统 — RBAC 四级权限 API 已实现
+- [x] **成员管理模块** — 完整增删改查 + 邀请流程 + RBAC 权限 + 邮件服务 + Token 刷新
 - [x] 订阅付款系统 — 设计文档已完成，Paddle Billing 方案已定，待编码集成
 - [x] 前端框架搭建 — Next.js 14 + 主题 + i18n + 响应式布局
 - [x] **第一阶段前端页面** — Dashboard/Members/Settings 完整实现，前后端全链路可测试
 - [x] 本地开发环境 — Docker 29.5.0 + Colima + PostgreSQL 16 + Redis 8 + MinIO
 - [x] Docker 服务 — docker-compose 启动 postgres/redis/minio 容器，全部 healthy
+- [x] 一键启动脚本 — `bash dev-start.sh` 自动启动 Colima + Docker + 前后端，`--stop` 停止全部
 - [ ] 部署运维 — Docker Compose 已配置，CI/CD 待实现
 - [ ] 订阅付款集成 — Paddle Checkout + Webhook + 升级降级
 
 ## 最近完成的工作
 
+- 2026-05-18: 成员管理模块完整开发 — 邀请流程、RBAC 权限中间件、邮件服务(Resend)、Token 刷新拦截器、注册邀请支持、角色权限 UI 控制
+- 2026-05-18: 一键启动脚本 `dev-start.sh` — 自动启动 Colima + Docker + 前后端，支持 `--stop` 停止全部
 - 2026-05-17: 第一阶段前端页面完成 — Dashboard/Members/Settings 全链路可测试
 - 2026-05-17: 响应式布局 — 移动端 Sidebar drawer + 汉堡菜单 + 遮罩动画
 - 2026-05-17: Header 接入 Dashboard 布局 — 主题切换/语言切换/用户菜单
@@ -98,8 +103,7 @@ You tend to converge toward generic, "on distribution" outputs. In frontend desi
 1. 实现 Paddle Billing 订阅支付（Checkout + Webhook + 升级降级）
 2. 实现 OAuth 第三方登录（Google / GitHub）
 3. 后端 API 集成测试 + 前端 E2E 测试
-4. 前端 Dashboard/Members/Billing 页面完整功能实现
-5. CI/CD 部署方案实施
+4. CI/CD 部署方案实施
 
 ## 关键决策记录
 
@@ -111,6 +115,10 @@ You tend to converge toward generic, "on distribution" outputs. In frontend desi
 | 2026-05-17 | 字体选 DM Serif Display + DM Sans + JetBrains Mono | 避免 Inter/Roboto 等通用字体 |
 | 2026-05-17 | 用 Colima + 本地安装替代 Docker Desktop | Docker Desktop 下载源 DNS 无法解析；Colima 二进制可直装，PostgreSQL/Redis 直接 brew 安装更稳定 |
 | 2026-05-17 | 废弃 Stripe，改用 Paddle Billing | Paddle 原生支持微信支付/支付宝，作为 MoR 承担全球税务合规，网络可达性好 |
+| 2026-05-18 | 成员管理用 Invitation Token 邀请流程 | 不直接添加用户，通过生成邀请 Token → 发邮件 → 注册时自动加入组织，支持过期/取消/重复检查 |
+| 2026-05-18 | 前端 Token 刷新用 401 拦截器模式 | 对业务层透明，`isRefreshing` + 等待队列防止并发刷新，实现与后端 Refresh Token Rotation 配合 |
+| 2026-05-18 | 邮件服务选 Resend SDK | 现代 API 设计，React Email 生态兼容，开发环境无 API Key 时 console.warn 降级不阻塞 |
+| 2026-05-18 | RBAC `manage` 权限应包含所有子操作 | 修改 permission 中间件为 `action: { in: [action, 'manage'] }`，Owner 只需分配 manage 即可 |
 
 ## 项目文档索引
 

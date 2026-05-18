@@ -1,4 +1,4 @@
-app = "saas-platform-api"
+app = "saas-platform-api-kind-fire-7734"
 primary_region = "nrt"
 
 [build]

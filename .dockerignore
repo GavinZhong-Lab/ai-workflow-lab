@@ -1,0 +1,15 @@
+node_modules
+dist
+.next
+.turbo
+.git
+.env
+.env.*
+*.md
+.claude
+docs
+.turbo
+.next
+dist
+*.tsbuildinfo
+EOF

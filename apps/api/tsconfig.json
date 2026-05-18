@@ -7,11 +7,8 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "noEmit": true,
-    "paths": {
-      "@saas/shared": ["../../packages/shared/src"]
-    }
+    "outDir": "dist"
   },
-  "include": ["src", "../../packages/shared/src"],
+  "include": ["src"],
   "exclude": ["node_modules", "dist"]
 }

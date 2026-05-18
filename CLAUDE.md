@@ -84,11 +84,13 @@ You tend to converge toward generic, "on distribution" outputs. In frontend desi
 - [x] 本地开发环境 — Docker 29.5.0 + Colima + PostgreSQL 16 + Redis 8 + MinIO
 - [x] Docker 服务 — docker-compose 启动 postgres/redis/minio 容器，全部 healthy
 - [x] 一键启动脚本 — `bash dev-start.sh` 自动启动 Colima + Docker + 前后端，`--stop` 停止全部
-- [ ] 部署运维 — Docker Compose 已配置，CI/CD 待实现
+- [x] 部署运维 — 部署方案设计完成，Dockerfile/fly.toml/CI/CD 已配置，待注册平台上线
 - [ ] 订阅付款集成 — Paddle Checkout + Webhook + 升级降级
 
 ## 最近完成的工作
 
+- 2026-05-18: 部署方案设计与配置 — Vercel+Fly.io+Supabase+Upstash+Cloudflare R2 全部免费方案，Dockerfile/fly.toml/.dockerignore/GitHub Actions CI/CD 已创建
+- 2026-05-18: 修复生产构建 — tsconfig noEmit 移除 + @prisma/client 移入 dependencies + shared 包编译 + turbo build 验证通过
 - 2026-05-18: 成员管理模块完整开发 — 邀请流程、RBAC 权限中间件、邮件服务(Resend)、Token 刷新拦截器、注册邀请支持、角色权限 UI 控制
 - 2026-05-18: 一键启动脚本 `dev-start.sh` — 自动启动 Colima + Docker + 前后端，支持 `--stop` 停止全部
 - 2026-05-17: 第一阶段前端页面完成 — Dashboard/Members/Settings 全链路可测试
@@ -100,10 +102,11 @@ You tend to converge toward generic, "on distribution" outputs. In frontend desi
 
 ## 下一步计划
 
-1. 实现 Paddle Billing 订阅支付（Checkout + Webhook + 升级降级）
-2. 实现 OAuth 第三方登录（Google / GitHub）
-3. 后端 API 集成测试 + 前端 E2E 测试
-4. CI/CD 部署方案实施
+1. 注册 Vercel / Fly.io / Supabase / Upstash / Cloudflare 平台账号
+2. 配置生产环境变量和密钥，首次部署上线
+3. 实现 Paddle Billing 订阅支付（Checkout + Webhook + 升级降级）
+4. 实现 OAuth 第三方登录（Google / GitHub）
+5. 后端 API 集成测试 + 前端 E2E 测试
 
 ## 关键决策记录
 
@@ -119,6 +122,10 @@ You tend to converge toward generic, "on distribution" outputs. In frontend desi
 | 2026-05-18 | 前端 Token 刷新用 401 拦截器模式 | 对业务层透明，`isRefreshing` + 等待队列防止并发刷新，实现与后端 Refresh Token Rotation 配合 |
 | 2026-05-18 | 邮件服务选 Resend SDK | 现代 API 设计，React Email 生态兼容，开发环境无 API Key 时 console.warn 降级不阻塞 |
 | 2026-05-18 | RBAC `manage` 权限应包含所有子操作 | 修改 permission 中间件为 `action: { in: [action, 'manage'] }`，Owner 只需分配 manage 即可 |
+| 2026-05-18 | 前端选 Vercel 而非 Cloudflare Pages | Next.js 原生支持，ISR/SSR 无兼容问题，零配置 |
+| 2026-05-18 | 后端选 Fly.io 而非 Render | 多区域部署（含 Tokyo），全球低延迟，无冷启动 |
+| 2026-05-18 | 数据库选 Supabase 托管而非自建 | 免费 500MB，免运维，内置连接池，每日备份 |
+| 2026-05-18 | 对象存储用 Cloudflare R2 替代 MinIO | 免费 10GB 且零出口费，S3 API 兼容，无需自建 |
 
 ## 项目文档索引
 

@@ -71,6 +71,9 @@ venv/
 *.egg-info/
 .eggs/
 
+# --- Turbo ---
+.turbo/
+
 # --- Claude Code ---
 .claude/
 

@@ -7,6 +7,7 @@
     "confirm": "Confirm",
     "search": "Search",
     "signOut": "Sign out",
+    "signOutConfirm": "Are you sure you want to sign out?",
     "saving": "Saving...",
     "noData": "No data",
     "error": "Failed to load",

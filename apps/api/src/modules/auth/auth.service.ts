@@ -6,6 +6,7 @@ import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { prisma } from '../../lib/prisma.js';
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../../lib/jwt.js';
+import { assignDefaultPermissions } from '../../lib/rbac.js';
 import { ErrorCode } from '@saas/shared';
 
 /** 认证业务服务 */
@@ -69,8 +70,13 @@ export class AuthService {
           const ownerRole = await tx.role.create({
             data: { organizationId: fallbackOrg.id, name: 'Owner', isSystem: true },
           });
-          await tx.role.create({ data: { organizationId: fallbackOrg.id, name: 'Admin', isSystem: true } });
-          await tx.role.create({ data: { organizationId: fallbackOrg.id, name: 'Member', isSystem: true } });
+          const adminRole = await tx.role.create({ data: { organizationId: fallbackOrg.id, name: 'Admin', isSystem: true } });
+          const memberRole = await tx.role.create({ data: { organizationId: fallbackOrg.id, name: 'Member', isSystem: true } });
+          await assignDefaultPermissions(tx, {
+            ownerRoleId: ownerRole.id,
+            adminRoleId: adminRole.id,
+            memberRoleId: memberRole.id,
+          });
           await tx.userOrganizationRole.create({
             data: { userId: user.id, organizationId: fallbackOrg.id, roleId: ownerRole.id },
           });
@@ -84,8 +90,13 @@ export class AuthService {
         const ownerRole = await tx.role.create({
           data: { organizationId: org.id, name: 'Owner', isSystem: true },
         });
-        await tx.role.create({ data: { organizationId: org.id, name: 'Admin', isSystem: true } });
-        await tx.role.create({ data: { organizationId: org.id, name: 'Member', isSystem: true } });
+        const adminRole = await tx.role.create({ data: { organizationId: org.id, name: 'Admin', isSystem: true } });
+        const memberRole = await tx.role.create({ data: { organizationId: org.id, name: 'Member', isSystem: true } });
+        await assignDefaultPermissions(tx, {
+          ownerRoleId: ownerRole.id,
+          adminRoleId: adminRole.id,
+          memberRoleId: memberRole.id,
+        });
         await tx.userOrganizationRole.create({
           data: { userId: user.id, organizationId: org.id, roleId: ownerRole.id },
         });

@@ -7,6 +7,7 @@
     "confirm": "确认",
     "search": "搜索",
     "signOut": "退出登录",
+    "signOutConfirm": "确定要退出登录吗？",
     "saving": "保存中...",
     "noData": "暂无数据",
     "error": "加载失败",

@@ -42,6 +42,8 @@ You tend to converge toward generic, "on distribution" outputs. In frontend desi
  
 6. Interpret creatively and make unexpected choices that feel genuinely designed for the context. Vary between light and dark themes, different fonts, different aesthetics. You still tend to converge on common choices (Space Grotesk, for example) across generations. Avoid this: it is critical that you think outside the box!
 
+7. Skeleton loading states: Every page that may have performance issues (API-dependent, lazy-loaded modules, dynamic imports) MUST have a skeleton screen loading state. Use Suspense + skeleton fallback pattern. Skeleton layout must mirror real content layout to avoid CLS. Use animate-pulse with muted border color, never flashing/rotating animations. Applies to: app marketplace, individual app pages, dashboards, data tables, and any page with async data dependencies.
+
 ### 文档输出要求
 每次开发任务必须按功能模块输出文档到 `/docs/{模块名}/` 目录：
 
@@ -85,23 +87,24 @@ You tend to converge toward generic, "on distribution" outputs. In frontend desi
 - [x] Docker 服务 — docker-compose 启动 postgres/redis/minio 容器，全部 healthy
 - [x] 一键启动脚本 — `bash dev-start.sh` 自动启动 Colima + Docker + 前后端，`--stop` 停止全部
 - [x] **部署上线** — Vercel + Fly.io + Supabase + Upstash，前后端全链路可访问
+- [x] **应用模块** — 应用市场首页 + 详情页 + 业务页面 + 行业过滤 + Banner 轮播 + 骨架屏
+- [x] **组织与行业** — 注册填写企业名称/行业级联选择 + Sidebar 企业展示 + 行业后端 API
+- [x] **超级管理员** — 应用管理后台（应用/Banner CRUD）+ 下线应用拦截 + 超管中间件
+- [x] **登录/注册主题语言** — 认证页面支持主题切换 + 完整中英文 i18n
 - [ ] 订阅付款集成 — Paddle Checkout + Webhook + 升级降级
 
 ## 最近完成的工作
 
-- 2026-05-19: **首次部署上线** — 后端 Fly.io (saas-platform-api-kind-fire-7734.fly.dev) + 前端 Vercel (ai-workflow-lab-web.vercel.app) + Supabase Tokyo + Upstash，全链路可访问
-- 2026-05-19: 种子数据导入 — Supabase 数据库迁移 + 测试用户/角色/权限种子数据
-- 2026-05-19: Dockerfile 踩坑修复 — node:22-alpine / OpenSSL / shamefully-hoist / prisma 权限 / 密码编码
+- 2026-05-19: **Bug 修复与 UI 优化** — 超管登录无应用管理菜单/成员页无限加载、应用市场未反映管理后台编辑、Sidebar 图标替换为 lucide-react、收起状态悬浮气泡提示、hydration 服务端/客户端不匹配、Sidebar 横向滚动条、深色模式左侧白边、收起按钮深浅色主题背景适配、骨架屏加载规范
+- 2026-05-19: **应用模块完整实现** — 市场首页（Banner 轮播/精选/行业过滤/骨架屏）、应用详情页（模块列表）、业务页面动态路由
+- 2026-05-19: **超级管理员模块** — 超管中间件 + 应用管理后台（应用/Banner 表格 CRUD）+ 下线拦截 + admin@saas.com 超管账号
+- 2026-05-19: **组织与行业** — 注册增加企业名称（必填）+ 3 级行业级联选择（15 个 L1 行业）+ 后端静态 API + 侧边栏企业首字符 Logo
+- 2026-05-19: **Sidebar 优化** — 展开/收起功能（持久化）+ 打开应用页自动收起 + 超管显示应用管理菜单
+- 2026-05-19: **主题/语言适配** — 认证页面主题切换 + 全部表单占位符/文案中英文 i18n + CSS 变量暗亮色适配
+- 2026-05-19: 种子数据更新 — 8 个示例应用（CRM/HR/PM/E-commerce/教育/医疗/FinTech）+ 3 个 Banner + 超管账号
+- 2026-05-19: **首次部署上线** — 后端 Fly.io + 前端 Vercel + Supabase Tokyo + Upstash，全链路可访问
 - 2026-05-18: 部署方案设计与配置 — Vercel+Fly.io+Supabase+Upstash+Cloudflare R2 全部免费方案
-- 2026-05-18: 修复生产构建 — tsconfig noEmit 移除 + @prisma/client 移入 dependencies + shared 包编译
 - 2026-05-18: 成员管理模块完整开发 — 邀请流程、RBAC 权限中间件、邮件服务(Resend)、Token 刷新拦截器、注册邀请支持、角色权限 UI 控制
-- 2026-05-18: 一键启动脚本 `dev-start.sh` — 自动启动 Colima + Docker + 前后端，支持 `--stop` 停止全部
-- 2026-05-17: 第一阶段前端页面完成 — Dashboard/Members/Settings 全链路可测试
-- 2026-05-17: 响应式布局 — 移动端 Sidebar drawer + 汉堡菜单 + 遮罩动画
-- 2026-05-17: Header 接入 Dashboard 布局 — 主题切换/语言切换/用户菜单
-- 2026-05-17: API Client 自动注入 JWT Token — 无需手动传 token
-- 2026-05-17: Auth Guard 路由保护 — 未登录自动跳转登录页
-- 2026-05-17: 环境验证通过 — Docker + Colima + PostgreSQL + Redis + MinIO 全部 running healthy
 
 ## 下一步计划
 

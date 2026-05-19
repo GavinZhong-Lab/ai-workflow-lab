@@ -13,7 +13,10 @@
     "error": "加载失败",
     "retry": "重试",
     "close": "关闭",
-    "back": "返回"
+    "back": "返回",
+    "selectIndustry": "选择行业",
+    "selectCategory": "选择分类",
+    "selectSubcategory": "选择子类"
   },
   "auth": {
     "login": "登录",
@@ -23,21 +26,37 @@
     "name": "姓名",
     "loginTitle": "欢迎回来",
     "loginDesc": "登录您的账户以继续",
+    "loginTagline": "构建你的下一个 SaaS",
+    "loginHeroDesc": "一个用于构建 AI 原生 SaaS 应用的现代平台。免费开始，随业务增长扩展。",
     "registerTitle": "创建账户",
     "registerDesc": "开始构建您的 SaaS 应用",
+    "registerTagline": "开启你的旅程",
+    "registerHeroDesc": "创建免费账户，使用所有工具开始构建你的 SaaS 应用。",
+    "inviteTagline": "你被邀请了",
+    "inviteHeroDesc": "创建账户以加入组织并开始与团队协作。",
+    "inviteNotice": "你正在接受一个邀请。注册后你的账户将自动加入该组织。",
+    "joinedOrg": "账户创建成功！正在跳转...",
     "forgotPassword": "忘记密码？",
     "noAccount": "还没有账户？",
     "hasAccount": "已有账户？",
     "loginButton": "登录",
-    "registerButton": "创建账户"
+    "registerButton": "创建账户",
+    "emailPlaceholder": "you@example.com",
+    "passwordPlaceholder": "至少 8 个字符",
+    "namePlaceholder": "你的姓名",
+    "companyName": "企业名称",
+    "companyNameHint": "如没有企业，填写个人姓名即可",
+    "companyNamePlaceholder": "你的企业名称",
+    "industry": "所属行业"
   },
   "sidebar": {
     "dashboard": "工作台",
-    "projects": "项目",
+    "apps": "应用",
     "settings": "设置",
     "members": "成员管理",
     "organization": "组织",
-    "billing": "订阅与账单"
+    "billing": "订阅与账单",
+    "appManagement": "应用管理"
   },
   "dashboard": {
     "title": "工作台",
@@ -106,5 +125,44 @@
     "enUS": "English",
     "saveProfile": "保存修改",
     "profileSaved": "个人信息已保存"
+  },
+  "apps": {
+    "title": "应用市场",
+    "featured": "精选应用",
+    "allApps": "全部应用",
+    "noApps": "当前行业暂无可用应用。",
+    "viewDetails": "查看详情",
+    "modules": "功能模块",
+    "noModules": "此应用暂无可用模块。",
+    "appNotFound": "应用未找到",
+    "appNotFoundDesc": "您查找的应用不存在或已下线。",
+    "backToMarketplace": "返回应用市场",
+    "loadingApp": "加载应用中...",
+    "offlineApp": "该应用已下线"
+  },
+  "admin": {
+    "title": "应用管理",
+    "apps": "应用列表",
+    "banners": "广告横幅",
+    "createApp": "创建应用",
+    "editApp": "编辑应用",
+    "createBanner": "创建横幅",
+    "editBanner": "编辑横幅",
+    "key": "标识",
+    "name": "名称",
+    "iconUrl": "图标链接",
+    "isGeneral": "通用应用",
+    "isFeatured": "精选推荐",
+    "isActive": "启用",
+    "sortOrder": "排序",
+    "industries": "所属行业",
+    "titleField": "标题",
+    "description": "描述",
+    "imageUrl": "图片链接",
+    "linkAppKey": "关联应用标识",
+    "deleteConfirm": "确定要删除此项吗？",
+    "deleteConfirmDesc": "此操作无法撤销。",
+    "yes": "确定",
+    "no": "取消"
   }
 }

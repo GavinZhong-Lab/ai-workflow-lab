@@ -13,7 +13,10 @@
     "error": "Failed to load",
     "retry": "Retry",
     "close": "Close",
-    "back": "Back"
+    "back": "Back",
+    "selectIndustry": "Select industry",
+    "selectCategory": "Select category",
+    "selectSubcategory": "Select subcategory"
   },
   "auth": {
     "login": "Log in",
@@ -23,21 +26,37 @@
     "name": "Name",
     "loginTitle": "Welcome back",
     "loginDesc": "Sign in to your account to continue",
+    "loginTagline": "Build your next SaaS",
+    "loginHeroDesc": "A modern platform for building AI-native SaaS applications. Start free and scale as you grow.",
     "registerTitle": "Create account",
     "registerDesc": "Start building your SaaS application",
+    "registerTagline": "Start your journey",
+    "registerHeroDesc": "Create your free account and start building your SaaS application with all the tools you need.",
+    "inviteTagline": "You're invited",
+    "inviteHeroDesc": "Create your account to join the organization and start collaborating with your team.",
+    "inviteNotice": "You are accepting an invitation. Your account will be added to the organization automatically.",
+    "joinedOrg": "Account created! Redirecting...",
     "forgotPassword": "Forgot password?",
     "noAccount": "Don't have an account?",
     "hasAccount": "Already have an account?",
     "loginButton": "Sign in",
-    "registerButton": "Create account"
+    "registerButton": "Create account",
+    "emailPlaceholder": "you@example.com",
+    "passwordPlaceholder": "Min. 8 characters",
+    "namePlaceholder": "Your name",
+    "companyName": "Company name",
+    "companyNameHint": "If you don't have a company, just use your name",
+    "companyNamePlaceholder": "Your company name",
+    "industry": "Industry"
   },
   "sidebar": {
     "dashboard": "Dashboard",
-    "projects": "Projects",
+    "apps": "Apps",
     "settings": "Settings",
     "members": "Members",
     "organization": "Organization",
-    "billing": "Billing"
+    "billing": "Billing",
+    "appManagement": "App Management"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -106,5 +125,44 @@
     "enUS": "English",
     "saveProfile": "Save Changes",
     "profileSaved": "Profile saved"
+  },
+  "apps": {
+    "title": "App Marketplace",
+    "featured": "Featured Apps",
+    "allApps": "All Apps",
+    "noApps": "No apps available for your industry yet.",
+    "viewDetails": "View details",
+    "modules": "Modules",
+    "noModules": "No modules available for this app.",
+    "appNotFound": "App not found",
+    "appNotFoundDesc": "The application you are looking for does not exist or has been taken offline.",
+    "backToMarketplace": "Back to Marketplace",
+    "loadingApp": "Loading app...",
+    "offlineApp": "This app is currently offline"
+  },
+  "admin": {
+    "title": "App Management",
+    "apps": "Applications",
+    "banners": "Banners",
+    "createApp": "Create App",
+    "editApp": "Edit App",
+    "createBanner": "Create Banner",
+    "editBanner": "Edit Banner",
+    "key": "Key",
+    "name": "Name",
+    "iconUrl": "Icon URL",
+    "isGeneral": "General",
+    "isFeatured": "Featured",
+    "isActive": "Active",
+    "sortOrder": "Order",
+    "industries": "Industries",
+    "titleField": "Title",
+    "description": "Description",
+    "imageUrl": "Image URL",
+    "linkAppKey": "Link App Key",
+    "deleteConfirm": "Are you sure you want to delete this item?",
+    "deleteConfirmDesc": "This action cannot be undone.",
+    "yes": "Yes",
+    "no": "No"
   }
 }

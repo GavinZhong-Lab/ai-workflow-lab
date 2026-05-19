@@ -17,6 +17,7 @@ export default function LoginPage({ params }: { params: { locale: string } }) {
   const t = useTranslations('auth');
   const router = useRouter();
   const setAuth = useAuthStore((s) => s.setAuth);
+  const setOrgName = useAuthStore((s) => s.setOrgName);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -34,7 +35,7 @@ export default function LoginPage({ params }: { params: { locale: string } }) {
         data: {
           user: { id: string; email: string; name: string | null };
           tokens: { accessToken: string; refreshToken: string };
-          currentOrg: { id: string } | null;
+          currentOrg: { id: string; name: string } | null;
         };
       }>('/api/v1/auth/login', { email, password });
 
@@ -44,6 +45,9 @@ export default function LoginPage({ params }: { params: { locale: string } }) {
         res.data.user,
         res.data.currentOrg?.id,
       );
+      if (res.data.currentOrg?.name) {
+        setOrgName(res.data.currentOrg.name);
+      }
       router.push(`/${params.locale}/dashboard`);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Login failed');
@@ -53,9 +57,9 @@ export default function LoginPage({ params }: { params: { locale: string } }) {
   };
 
   return (
-    <div className="min-h-screen flex bg-ink-950">
-      {/* 左侧装饰面板 */}
-      <div className="hidden lg:flex lg:w-5/12 relative overflow-hidden bg-ink-900">
+    <div className="min-h-screen flex bg-[rgb(var(--color-bg))]">
+      {/* 左侧装饰面板 — 始终保持深色 */}
+      <div className="hidden lg:flex lg:w-5/12 relative overflow-hidden bg-[rgb(18,25,45)]">
         <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-transparent to-ember-500/5" />
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl" />
         <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-ember-500/10 rounded-full blur-3xl" />
@@ -67,12 +71,10 @@ export default function LoginPage({ params }: { params: { locale: string } }) {
             transition={{ duration: 0.7 }}
           >
             <h1 className="font-display text-5xl text-white leading-tight">
-              Build your
-              <br />
-              <span className="text-amber-500">next SaaS</span>
+              <span className="text-amber-500">{t('loginTagline')}</span>
             </h1>
-            <p className="mt-6 text-lg text-ink-300 max-w-md leading-relaxed">
-              A modern platform for building AI-native SaaS applications. Start free and scale as you grow.
+            <p className="mt-6 text-lg text-slate-400 max-w-md leading-relaxed">
+              {t('loginHeroDesc')}
             </p>
           </motion.div>
         </div>
@@ -86,14 +88,14 @@ export default function LoginPage({ params }: { params: { locale: string } }) {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="w-full max-w-sm"
         >
-          <h2 className="font-display text-3xl text-white">{t('loginTitle')}</h2>
-          <p className="mt-2 text-ink-400">{t('loginDesc')}</p>
+          <h2 className="font-display text-3xl text-[rgb(var(--color-text))]">{t('loginTitle')}</h2>
+          <p className="mt-2 text-[rgb(var(--color-text-muted))]">{t('loginDesc')}</p>
 
           {error && (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="mt-6 p-3 rounded-lg bg-ember-500/10 border border-ember-500/30 text-ember-400 text-sm"
+              className="mt-6 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm"
             >
               {error}
             </motion.div>
@@ -101,7 +103,7 @@ export default function LoginPage({ params }: { params: { locale: string } }) {
 
           <form onSubmit={handleLogin} className="mt-8 space-y-5">
             <div>
-              <label className="block text-sm font-medium text-ink-300 mb-1.5">
+              <label className="block text-sm font-medium text-[rgb(var(--color-text-muted))] mb-1.5">
                 {t('email')}
               </label>
               <input
@@ -109,12 +111,12 @@ export default function LoginPage({ params }: { params: { locale: string } }) {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="input-field w-full"
-                placeholder="you@example.com"
+                placeholder={t('emailPlaceholder')}
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-ink-300 mb-1.5">
+              <label className="block text-sm font-medium text-[rgb(var(--color-text-muted))] mb-1.5">
                 {t('password')}
               </label>
               <input
@@ -122,7 +124,7 @@ export default function LoginPage({ params }: { params: { locale: string } }) {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="input-field w-full"
-                placeholder="••••••••"
+                placeholder={t('passwordPlaceholder')}
                 required
               />
             </div>
@@ -136,7 +138,7 @@ export default function LoginPage({ params }: { params: { locale: string } }) {
             </button>
           </form>
 
-          <p className="mt-8 text-center text-sm text-ink-400">
+          <p className="mt-8 text-center text-sm text-[rgb(var(--color-text-muted))]">
             {t('noAccount')}{' '}
             <Link
               href={`/${params.locale}/register`}

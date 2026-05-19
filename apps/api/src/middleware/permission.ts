@@ -25,6 +25,13 @@ export function requirePermission(applicationKey: string, moduleKey: string, act
     // 动态导入避免循环依赖
     const { prisma } = await import('../lib/prisma.js');
 
+    // 超级管理员绕过所有权限检查
+    const user = await prisma.user.findUnique({
+      where: { id: req.userId },
+      select: { isSuperAdmin: true },
+    });
+    if (user?.isSuperAdmin) return next();
+
     const hasPermission = await prisma.rolePermission.findFirst({
       where: {
         role: {

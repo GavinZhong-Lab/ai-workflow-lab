@@ -14,6 +14,8 @@ export const registerSchema = z.object({
     .regex(/[A-Z]/, 'Password must contain an uppercase letter')
     .regex(/[0-9]/, 'Password must contain a number'),
   name: z.string().min(1, 'Name is required').max(100),
+  companyName: z.string().min(1, 'Company name is required').max(200),
+  industry: z.string().min(1, 'Industry is required'),
   invitationToken: z.string().min(1).optional(),
 });
 

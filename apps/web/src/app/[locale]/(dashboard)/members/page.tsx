@@ -47,6 +47,7 @@ export default function MembersPage() {
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
+  const [orgChecked, setOrgChecked] = useState(false);
   const [error, setError] = useState('');
 
   // 判断当前用户角色
@@ -63,7 +64,8 @@ export default function MembersPage() {
           setOrgId(res.data.list[0].id);
         }
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setOrgChecked(true));
   }, [orgId, setOrgId]);
 
   // Confirm dialogs
@@ -120,14 +122,17 @@ export default function MembersPage() {
   }, [orgId, inviteRoleId]);
 
   useEffect(() => {
-    if (!orgId) return;
+    if (!orgId) {
+      if (orgChecked) setLoading(false);
+      return;
+    }
     async function init() {
       setLoading(true);
       await Promise.all([fetchMembers(), fetchRoles(), fetchInvitations()]);
       setLoading(false);
     }
     init();
-  }, [orgId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [orgId, orgChecked]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleInvite = async () => {
     if (!inviteEmail.trim() || !inviteRoleId) return;

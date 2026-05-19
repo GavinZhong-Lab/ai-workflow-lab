@@ -59,6 +59,10 @@ You tend to converge toward generic, "on distribution" outputs. In frontend desi
 - ✅ 必须先输出设计方案文档，等待我审查
 - ✅ 我确认「方案通过」或「可以开始」后，才能进入编码阶段
 
+### 提交代码规范
+- commit message全部使用英文
+- 不可留下Claude code的提交用户信息
+
 ## 快捷指令
 
 当我说「保存进度」时，请执行：

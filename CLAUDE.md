@@ -95,10 +95,11 @@ You tend to converge toward generic, "on distribution" outputs. In frontend desi
 - [x] **组织与行业** — 注册填写企业名称/行业级联选择 + Sidebar 企业展示 + 行业后端 API
 - [x] **超级管理员** — 应用管理后台（应用/Banner CRUD）+ 下线应用拦截 + 超管中间件
 - [x] **登录/注册主题语言** — 认证页面支持主题切换 + 完整中英文 i18n
-- [ ] 订阅付款集成 — Paddle Checkout + Webhook + 升级降级
+- [x] **订阅付款集成** — Paddle Billing Checkout + Webhook + 付费应用拦截 + 成员上限 + 前端 Billing 页面
 
 ## 最近完成的工作
 
+- 2026-05-20: **Paddle Billing 集成** — Paddle SDK 封装（checkout/订阅管理/Webhook 验证）、订阅模块（套餐查询/Checkout 创建/取消/付款记录）、Webhook 处理（订阅激活/更新/取消/支付完成/支付失败）、付费应用守卫中间件（实时检查订阅状态+7天试用期）、成员上限中间件（Free=3/Pro=员工数/Enterprise=无限）、前端 Billing 页面（套餐卡片+人数输入+实时计价+支付记录表）、应用市场付费标识、超管 isPaid 编辑、IndustryMultiSelect 多行业选择组件、成员上限接入邀请/注册/接受邀请流程
 - 2026-05-19: **Bug 修复与 UI 优化** — 超管登录无应用管理菜单/成员页无限加载、应用市场未反映管理后台编辑、Sidebar 图标替换为 lucide-react、收起状态悬浮气泡提示、hydration 服务端/客户端不匹配、Sidebar 横向滚动条、深色模式左侧白边、收起按钮深浅色主题背景适配、骨架屏加载规范
 - 2026-05-19: **应用模块完整实现** — 市场首页（Banner 轮播/精选/行业过滤/骨架屏）、应用详情页（模块列表）、业务页面动态路由
 - 2026-05-19: **超级管理员模块** — 超管中间件 + 应用管理后台（应用/Banner 表格 CRUD）+ 下线拦截 + admin@saas.com 超管账号
@@ -112,10 +113,12 @@ You tend to converge toward generic, "on distribution" outputs. In frontend desi
 
 ## 下一步计划
 
-1. 实现 Paddle Billing 订阅支付（Checkout + Webhook + 升级降级）
-2. 实现 OAuth 第三方登录（Google / GitHub）
-3. 后端 API 集成测试 + 前端 E2E 测试
-4. 绑定自定义域名
+1. 注册 Paddle 账号，配置 Sandbox Products/Prices，填入 seed 数据
+2. 配置 PADDLE_API_KEY / PADDLE_WEBHOOK_SECRET 环境变量
+3. 端到端测试 Paddle Checkout + Webhook 完整流程
+4. 实现 OAuth 第三方登录（Google / GitHub）
+5. 后端 API 集成测试 + 前端 E2E 测试
+6. 绑定自定义域名
 
 ## 关键决策记录
 
@@ -138,6 +141,9 @@ You tend to converge toward generic, "on distribution" outputs. In frontend desi
 | 2026-05-19 | Dockerfile 用 `shamefully-hoist=true` | pnpm 默认不提升依赖到根 node_modules，生产环境 Node require 找不到 express 等模块 |
 | 2026-05-19 | 用 `node:22-alpine` + `openssl` 而非 `node:20-alpine` | 最新 pnpm 需要 Node 22；Prisma 引擎需要 OpenSSL |
 | 2026-05-19 | Fly.io 用 `--local-only` 构建 | 远程构建需上传 121MB context，本地构建只推最终镜像 270MB，速度快很多 |
+| 2026-05-20 | 付费访问用中间件实时检查而非缓存 | 订阅状态变动（Webhook 更新 DB）需立即对所有用户生效，paidAppGuard 每次请求查 DB |
+| 2026-05-20 | 套餐不限制应用数量，仅限制成员数 | 所有套餐可访问全部符合规则的应用，差异在 AI 用量（后续迭代）；成员上限 Free=3 / Pro=员工数 / Enterprise=不限 |
+| 2026-05-20 | 应用支持多行业归属 | 每个应用可关联多个行业（IndustryMultiSelect 组件），企业命中任意一个即可访问 |
 
 ## 项目文档索引
 

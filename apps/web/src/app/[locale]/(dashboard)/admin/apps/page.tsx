@@ -165,13 +165,13 @@ export default function AdminAppsPage() {
 
   // --- Banner actions ---
   const openCreateBanner = () => {
-    setForm({ key: '', name: '', description: '', iconUrl: '', isGeneral: false, isFeatured: false, isActive: true, sortOrder: 0, industries: [], title: '', imageUrl: '', linkAppKey: '' });
+    setForm({ key: '', name: '', description: '', iconUrl: '', isGeneral: false, isFeatured: false, isPaid: false, isActive: true, sortOrder: 0, industries: [], title: '', imageUrl: '', linkAppKey: '' });
     setModalType('banner-create');
   };
 
   const openEditBanner = (b: BannerItem) => {
     setEditingId(b.id);
-    setForm({ key: '', name: '', description: b.description || '', iconUrl: '', isGeneral: false, isFeatured: false, isActive: b.isActive, sortOrder: b.sortOrder, industries: [], title: b.title, imageUrl: b.imageUrl, linkAppKey: b.linkAppKey || '' });
+    setForm({ key: '', name: '', description: b.description || '', iconUrl: '', isGeneral: false, isFeatured: false, isPaid: false, isActive: b.isActive, sortOrder: b.sortOrder, industries: [], title: b.title, imageUrl: b.imageUrl, linkAppKey: b.linkAppKey || '' });
     setModalType('banner-edit');
   };
 

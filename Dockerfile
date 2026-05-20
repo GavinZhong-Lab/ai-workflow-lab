@@ -41,4 +41,4 @@ COPY --from=builder --chown=appuser:nodejs /app/node_modules ./node_modules
 USER appuser
 EXPOSE 4000
 
-CMD ["sh", "-c", "npx prisma db push --skip-generate && node dist/index.js"]
+CMD ["sh", "-c", "npx prisma db push --skip-generate --accept-data-loss && node dist/index.js"]

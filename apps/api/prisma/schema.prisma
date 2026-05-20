@@ -17,6 +17,7 @@ model User {
   avatarUrl        String?
   locale           String    @default("zh-CN")
   theme            String    @default("system")
+  isSuperAdmin     Boolean   @default(false)
   emailVerifiedAt  DateTime?
   lastLoginAt      DateTime?
   createdAt        DateTime  @default(now())
@@ -61,6 +62,7 @@ model Organization {
   name      String
   slug      String    @unique
   logoUrl   String?
+  industry  String?
   createdBy String
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -117,7 +119,14 @@ model Application {
   name        String
   key         String   @unique
   description String?
+  iconUrl     String?
+  bannerUrl   String?
   isActive    Boolean  @default(true)
+  isGeneral   Boolean  @default(false)
+  isFeatured  Boolean  @default(false)
+  isPaid      Boolean  @default(false)
+  industries  Json     @default("[]")
+  sortOrder   Int      @default(0)
   createdAt   DateTime @default(now())
 
   modules Module[]
@@ -135,6 +144,19 @@ model Module {
   permissions Permission[]
 
   @@unique([applicationId, key])
+}
+
+model AppBanner {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  imageUrl    String
+  linkUrl     String?
+  linkAppKey  String?
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Permission {
@@ -177,14 +199,16 @@ model RolePermission {
 // ============ Subscription ============
 
 model SubscriptionPlan {
-  id             String  @id @default(uuid())
-  name           String
-  stripePriceId  String?
-  billingPeriod  String? // monthly, yearly
-  amountCents    Int     @default(0)
-  currency       String  @default("usd")
-  features       Json    @default("[]")
-  sortOrder      Int     @default(0)
+  id                     String   @id @default(uuid())
+  name                   String
+  billingPeriod          String?  // monthly, yearly, null（Free）
+  baseAmountCents        Int      @default(0)
+  perPersonAmountCents   Int      @default(0)
+  paddleBasePriceId      String?  // Paddle 基础价格 ID，Free 为 null
+  paddlePerPersonPriceId String?  // Paddle 人均价格 ID，Free 为 null
+  currency               String   @default("cny")
+  features               Json     @default("[]")
+  sortOrder              Int      @default(0)
 
   subscriptions Subscription[]
 }
@@ -193,8 +217,10 @@ model Subscription {
   id                   String    @id @default(uuid())
   organizationId       String
   planId               String
-  stripeSubscriptionId String?
-  status               String    @default("active") // active, past_due, canceled, expired
+  paddleSubscriptionId String?   // Paddle Subscription ID
+  paddleCustomerId     String?   // Paddle Customer ID
+  employeeCount        Int       @default(1)
+  status               String    @default("active") // active, past_due, canceled, expired, trialing
   currentPeriodStart   DateTime
   currentPeriodEnd     DateTime
   canceledAt           DateTime?
@@ -206,19 +232,25 @@ model Subscription {
   payments     Payment[]
 
   @@index([organizationId])
+  @@index([paddleSubscriptionId])
 }
 
 model Payment {
-  id              String    @id @default(uuid())
-  organizationId  String
-  subscriptionId  String?
-  stripeInvoiceId String?
-  amountCents     Int
-  currency        String    @default("usd")
-  status          String    @default("succeeded") // succeeded, failed, refunded
-  paidAt          DateTime?
-  createdAt       DateTime  @default(now())
+  id                   String    @id @default(uuid())
+  organizationId       String
+  subscriptionId       String?
+  paddleTransactionId  String?   // Paddle Transaction ID
+  paddleInvoiceId      String?   // Paddle Invoice ID
+  amountCents          Int
+  currency             String    @default("cny")
+  paymentMethod        String?   // wechat_pay, alipay, card, paypal
+  status               String    @default("succeeded") // succeeded, failed, refunded
+  paidAt               DateTime?
+  createdAt            DateTime  @default(now())
 
   organization  Organization  @relation(fields: [organizationId], references: [id])
   subscription  Subscription? @relation(fields: [subscriptionId], references: [id])
+
+  @@index([organizationId])
+  @@index([paddleTransactionId])
 }

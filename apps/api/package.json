@@ -12,6 +12,8 @@
     "db:seed": "tsx --env-file=.env prisma/seed.ts"
   },
   "dependencies": {
+    "@paddle/paddle-js": "^1.6.4",
+    "@paddle/paddle-node-sdk": "^3.8.0",
     "@prisma/client": "^5.14.0",
     "@saas/shared": "workspace:*",
     "bcryptjs": "^2.4.3",

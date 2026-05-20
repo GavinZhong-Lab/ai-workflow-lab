@@ -11,8 +11,8 @@ import type { AuthRequest } from '../../middleware/auth.js';
 export class AuthController {
   /** POST /api/v1/auth/register */
   async register(req: Request, res: Response) {
-    const { email, password, name, invitationToken } = req.body as RegisterInput;
-    const result = await authService.register(email, password, name, invitationToken);
+    const { email, password, name, companyName, industry, invitationToken } = req.body as RegisterInput;
+    const result = await authService.register(email, password, name, companyName, industry, invitationToken);
     const status = result.code === 0 ? 201 : 409;
     res.status(status).json(result);
   }
@@ -45,6 +45,7 @@ export class AuthController {
         avatarUrl: true,
         locale: true,
         theme: true,
+        isSuperAdmin: true,
         emailVerifiedAt: true,
         createdAt: true,
       },

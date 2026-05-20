@@ -10,17 +10,20 @@ interface User {
   id: string;
   email: string;
   name: string | null;
+  isSuperAdmin?: boolean;
 }
 
 /** 认证 Store 类型 */
-interface AuthState {
+export interface AuthState {
   accessToken: string | null;
   refreshToken: string | null;
   user: User | null;
   orgId: string | null;
+  orgName: string | null;
   hydrated: boolean;
   setAuth: (accessToken: string, refreshToken: string, user: User, orgId?: string) => void;
   setOrgId: (orgId: string) => void;
+  setOrgName: (orgName: string) => void;
   logout: () => void;
   setHydrated: (hydrated: boolean) => void;
 }
@@ -33,6 +36,7 @@ export const useAuthStore = create<AuthState>()(
       refreshToken: null,
       user: null,
       orgId: null,
+      orgName: null,
       hydrated: false,
 
       setAuth: (accessToken, refreshToken, user, orgId) =>
@@ -40,8 +44,10 @@ export const useAuthStore = create<AuthState>()(
 
       setOrgId: (orgId) => set({ orgId }),
 
+      setOrgName: (orgName) => set({ orgName }),
+
       logout: () =>
-        set({ accessToken: null, refreshToken: null, user: null, orgId: null }),
+        set({ accessToken: null, refreshToken: null, user: null, orgId: null, orgName: null }),
 
       setHydrated: (hydrated) => set({ hydrated }),
     }),

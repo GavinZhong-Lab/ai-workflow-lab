@@ -6,6 +6,8 @@ import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { prisma } from '../../lib/prisma.js';
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../../lib/jwt.js';
+import { assignDefaultPermissions } from '../../lib/rbac.js';
+import { checkMemberLimit } from '../../middleware/member-limit.js';
 import { ErrorCode } from '@saas/shared';
 
 /** 认证业务服务 */
@@ -14,7 +16,7 @@ export class AuthService {
    * 用户注册
    * 创建用户 -> 创建默认组织 -> 分配 Owner 角色，事务保证原子性
    */
-  async register(email: string, password: string, name: string, invitationToken?: string) {
+  async register(email: string, password: string, name: string, companyName: string, industry: string, invitationToken?: string) {
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
       return { code: ErrorCode.EMAIL_ALREADY_EXISTS, data: null, message: 'Email already registered' };
@@ -36,6 +38,13 @@ export class AuthService {
       if (invitation.email !== email) {
         return { code: ErrorCode.INVITATION_EMAIL_MISMATCH, data: null, message: 'Email does not match the invitation' };
       }
+
+      // 检查成员人数上限
+      const limitCheck = await checkMemberLimit(invitation.organizationId, 1);
+      if (!limitCheck.allowed) {
+        return { code: ErrorCode.FORBIDDEN, data: null, message: limitCheck.message };
+      }
+
       acceptOrgId = invitation.organizationId;
     }
 
@@ -64,13 +73,18 @@ export class AuthService {
         } else {
           // 邀请已失效，回退到创建个人 Workspace
           const fallbackOrg = await tx.organization.create({
-            data: { name: `${name}'s Workspace`, slug: `${user.id}-workspace`, createdBy: user.id },
+            data: { name: companyName, slug: `${user.id}-workspace`, industry, createdBy: user.id },
           });
           const ownerRole = await tx.role.create({
             data: { organizationId: fallbackOrg.id, name: 'Owner', isSystem: true },
           });
-          await tx.role.create({ data: { organizationId: fallbackOrg.id, name: 'Admin', isSystem: true } });
-          await tx.role.create({ data: { organizationId: fallbackOrg.id, name: 'Member', isSystem: true } });
+          const adminRole = await tx.role.create({ data: { organizationId: fallbackOrg.id, name: 'Admin', isSystem: true } });
+          const memberRole = await tx.role.create({ data: { organizationId: fallbackOrg.id, name: 'Member', isSystem: true } });
+          await assignDefaultPermissions(tx, {
+            ownerRoleId: ownerRole.id,
+            adminRoleId: adminRole.id,
+            memberRoleId: memberRole.id,
+          });
           await tx.userOrganizationRole.create({
             data: { userId: user.id, organizationId: fallbackOrg.id, roleId: ownerRole.id },
           });
@@ -79,13 +93,18 @@ export class AuthService {
       } else {
         // 无邀请：创建个人 Workspace
         const org = await tx.organization.create({
-          data: { name: `${name}'s Workspace`, slug: `${user.id}-workspace`, createdBy: user.id },
+          data: { name: companyName, slug: `${user.id}-workspace`, industry, createdBy: user.id },
         });
         const ownerRole = await tx.role.create({
           data: { organizationId: org.id, name: 'Owner', isSystem: true },
         });
-        await tx.role.create({ data: { organizationId: org.id, name: 'Admin', isSystem: true } });
-        await tx.role.create({ data: { organizationId: org.id, name: 'Member', isSystem: true } });
+        const adminRole = await tx.role.create({ data: { organizationId: org.id, name: 'Admin', isSystem: true } });
+        const memberRole = await tx.role.create({ data: { organizationId: org.id, name: 'Member', isSystem: true } });
+        await assignDefaultPermissions(tx, {
+          ownerRoleId: ownerRole.id,
+          adminRoleId: adminRole.id,
+          memberRoleId: memberRole.id,
+        });
         await tx.userOrganizationRole.create({
           data: { userId: user.id, organizationId: org.id, roleId: ownerRole.id },
         });
@@ -100,7 +119,7 @@ export class AuthService {
     return {
       code: ErrorCode.OK,
       data: {
-        user: { id: result.user.id, email: result.user.email, name: result.user.name },
+        user: { id: result.user.id, email: result.user.email, name: result.user.name, isSuperAdmin: result.user.isSuperAdmin },
         tokens,
         joinedOrg: acceptOrgId ? true : false,
       },
@@ -136,7 +155,7 @@ export class AuthService {
     return {
       code: ErrorCode.OK,
       data: {
-        user: { id: user.id, email: user.email, name: user.name },
+        user: { id: user.id, email: user.email, name: user.name, isSuperAdmin: user.isSuperAdmin },
         tokens,
         currentOrg: firstOrgRole?.organization ?? null,
       },

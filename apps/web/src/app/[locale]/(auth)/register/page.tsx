@@ -11,6 +11,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth';
+import { IndustrySelect } from '@/components/ui/industry-select';
 import { Suspense } from 'react';
 
 function RegisterForm({ params }: { params: { locale: string } }) {
@@ -18,10 +19,13 @@ function RegisterForm({ params }: { params: { locale: string } }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const setAuth = useAuthStore((s) => s.setAuth);
+  const setOrgName = useAuthStore((s) => s.setOrgName);
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [companyName, setCompanyName] = useState('');
+  const [industry, setIndustry] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [joinedOrgName, setJoinedOrgName] = useState<string | null>(null);
@@ -37,7 +41,13 @@ function RegisterForm({ params }: { params: { locale: string } }) {
     setLoading(true);
 
     try {
-      const body: Record<string, string> = { name, email, password };
+      const body: Record<string, string> = {
+        name,
+        email,
+        password,
+        companyName: companyName || name,
+        industry,
+      };
       if (invitationToken) {
         body.invitationToken = invitationToken;
       }
@@ -51,6 +61,7 @@ function RegisterForm({ params }: { params: { locale: string } }) {
       }>('/api/v1/auth/register', body);
 
       setAuth(res.data.tokens.accessToken, res.data.tokens.refreshToken, res.data.user);
+      setOrgName(companyName || name);
 
       if (res.data.joinedOrg) {
         setJoinedOrgName('the organization');
@@ -66,9 +77,9 @@ function RegisterForm({ params }: { params: { locale: string } }) {
   };
 
   return (
-    <div className="min-h-screen flex bg-ink-950">
-      {/* 左侧装饰面板 */}
-      <div className="hidden lg:flex lg:w-5/12 relative overflow-hidden bg-ink-900">
+    <div className="min-h-screen flex bg-[rgb(var(--color-bg))]">
+      {/* 左侧装饰面板 — 始终保持深色 */}
+      <div className="hidden lg:flex lg:w-5/12 relative overflow-hidden bg-[rgb(18,25,45)]">
         <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-transparent to-ember-500/5" />
         <div className="absolute top-1/3 right-1/3 w-80 h-80 bg-amber-500/8 rounded-full blur-3xl" />
         <div className="absolute bottom-1/3 left-1/3 w-72 h-72 bg-amber-400/8 rounded-full blur-3xl" />
@@ -80,47 +91,35 @@ function RegisterForm({ params }: { params: { locale: string } }) {
             transition={{ duration: 0.7 }}
           >
             <h1 className="font-display text-5xl text-white leading-tight">
-              {invitationToken ? (
-                <>
-                  You&apos;re
-                  <br />
-                  <span className="text-amber-500">invited</span>
-                </>
-              ) : (
-                <>
-                  Start your
-                  <br />
-                  <span className="text-amber-500">journey</span>
-                </>
-              )}
+              <span className="text-amber-500">
+                {invitationToken ? t('inviteTagline') : t('registerTagline')}
+              </span>
             </h1>
-            <p className="mt-6 text-lg text-ink-300 max-w-md leading-relaxed">
-              {invitationToken
-                ? 'Create your account to join the organization and start collaborating with your team.'
-                : 'Create your free account and start building your SaaS application with all the tools you need.'}
+            <p className="mt-6 text-lg text-slate-400 max-w-md leading-relaxed">
+              {invitationToken ? t('inviteHeroDesc') : t('registerHeroDesc')}
             </p>
           </motion.div>
         </div>
       </div>
 
       {/* 右侧注册表单 */}
-      <div className="flex-1 flex items-center justify-center px-6">
+      <div className="flex-1 flex items-center justify-center px-6 py-12">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
           className="w-full max-w-sm"
         >
-          <h2 className="font-display text-3xl text-white">{t('registerTitle')}</h2>
-          <p className="mt-2 text-ink-400">{t('registerDesc')}</p>
+          <h2 className="font-display text-3xl text-[rgb(var(--color-text))]">{t('registerTitle')}</h2>
+          <p className="mt-2 text-[rgb(var(--color-text-muted))]">{t('registerDesc')}</p>
 
           {invitationToken && (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="mt-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 text-sm"
+              className="mt-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-500 text-sm"
             >
-              You are accepting an invitation. Your account will be added to the organization automatically.
+              {t('inviteNotice')}
             </motion.div>
           )}
 
@@ -128,9 +127,9 @@ function RegisterForm({ params }: { params: { locale: string } }) {
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="mt-4 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm"
+              className="mt-4 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 text-sm"
             >
-              Account created! You have joined {joinedOrgName}. Redirecting...
+              {t('joinedOrg')}
             </motion.div>
           )}
 
@@ -138,7 +137,7 @@ function RegisterForm({ params }: { params: { locale: string } }) {
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="mt-6 p-3 rounded-lg bg-ember-500/10 border border-ember-500/30 text-ember-400 text-sm"
+              className="mt-6 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm"
             >
               {error}
             </motion.div>
@@ -146,7 +145,7 @@ function RegisterForm({ params }: { params: { locale: string } }) {
 
           <form onSubmit={handleRegister} className="mt-8 space-y-5">
             <div>
-              <label className="block text-sm font-medium text-ink-300 mb-1.5">
+              <label className="block text-sm font-medium text-[rgb(var(--color-text-muted))] mb-1.5">
                 {t('name')}
               </label>
               <input
@@ -154,12 +153,12 @@ function RegisterForm({ params }: { params: { locale: string } }) {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="input-field w-full"
-                placeholder="Your name"
+                placeholder={t('namePlaceholder')}
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-ink-300 mb-1.5">
+              <label className="block text-sm font-medium text-[rgb(var(--color-text-muted))] mb-1.5">
                 {t('email')}
               </label>
               <input
@@ -167,12 +166,12 @@ function RegisterForm({ params }: { params: { locale: string } }) {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="input-field w-full"
-                placeholder="you@example.com"
+                placeholder={t('emailPlaceholder')}
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-ink-300 mb-1.5">
+              <label className="block text-sm font-medium text-[rgb(var(--color-text-muted))] mb-1.5">
                 {t('password')}
               </label>
               <input
@@ -180,22 +179,50 @@ function RegisterForm({ params }: { params: { locale: string } }) {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="input-field w-full"
-                placeholder="Min. 8 characters"
+                placeholder={t('passwordPlaceholder')}
                 required
                 minLength={8}
               />
             </div>
 
+            <div>
+              <label className="block text-sm font-medium text-[rgb(var(--color-text-muted))] mb-1.5">
+                {t('companyName')}
+              </label>
+              <input
+                type="text"
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+                className="input-field w-full"
+                placeholder={name || t('companyNamePlaceholder')}
+                required
+              />
+              <p className="mt-1 text-xs text-[rgb(var(--color-text-muted))]/70">
+                {t('companyNameHint')}
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-[rgb(var(--color-text-muted))] mb-1.5">
+                {t('industry')}
+              </label>
+              <IndustrySelect
+                value={industry}
+                onChange={setIndustry}
+                disabled={loading}
+              />
+            </div>
+
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !name || !email || !password || !industry}
               className="btn-primary w-full text-center py-3 disabled:opacity-50"
             >
               {loading ? t('loading') : t('registerButton')}
             </button>
           </form>
 
-          <p className="mt-8 text-center text-sm text-ink-400">
+          <p className="mt-8 text-center text-sm text-[rgb(var(--color-text-muted))]">
             {t('hasAccount')}{' '}
             <Link
               href={`/${params.locale}/login`}

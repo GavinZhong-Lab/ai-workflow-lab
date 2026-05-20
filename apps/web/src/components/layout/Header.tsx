@@ -9,6 +9,7 @@ import { useTheme } from 'next-themes';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth';
 import { useTranslations } from '@/hooks/use-translations';
+import { ConfirmDialog } from '@/components/ui';
 
 interface HeaderProps {
   onMenuToggle?: () => void;
@@ -16,6 +17,7 @@ interface HeaderProps {
 
 export function Header({ onMenuToggle }: HeaderProps) {
   const [mounted, setMounted] = useState(false);
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
   const { theme, setTheme } = useTheme();
   const router = useRouter();
 
@@ -100,12 +102,23 @@ export function Header({ onMenuToggle }: HeaderProps) {
           <span className="text-sm text-[rgb(var(--color-text))]">{user?.name || user?.email}</span>
         </div>
         <button
-          onClick={handleLogout}
+          onClick={() => setLogoutConfirmOpen(true)}
           className="text-sm text-[rgb(var(--color-text-muted))] hover:text-red-400 transition-colors px-2 py-1"
         >
           {t('signOut')}
         </button>
       </div>
+
+      <ConfirmDialog
+        open={logoutConfirmOpen}
+        onOpenChange={setLogoutConfirmOpen}
+        title={t('signOut')}
+        description={t('signOutConfirm')}
+        confirmLabel={t('signOut')}
+        cancelLabel={t('cancel')}
+        variant="danger"
+        onConfirm={handleLogout}
+      />
     </header>
   );
 }

@@ -22,7 +22,17 @@ import { industries } from './data/industries.js';
 export function createApp(): Express {
   const app = express();
 
-  app.use(cors({ origin: env.APP_URL, credentials: true }));
+  app.use(cors({
+    origin: (origin, cb) => {
+      const allowed = [env.APP_URL, 'https://ai-workflow-lab-web.vercel.app', 'https://ai-workflow-lab.vercel.app'];
+      // Allow requests with no origin (curl, Postman, server-to-server)
+      if (!origin || allowed.includes(origin)) return cb(null, true);
+      // Allow Vercel preview deployments
+      if (origin.endsWith('.vercel.app')) return cb(null, true);
+      cb(null, false);
+    },
+    credentials: true,
+  }));
 
   // Webhook 路由需要 raw body 用于 Paddle 签名验证
   app.use('/api/v1/webhooks', express.raw({ type: 'application/json' }), webhookRouter);

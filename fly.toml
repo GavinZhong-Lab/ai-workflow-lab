@@ -7,6 +7,8 @@ primary_region = "nrt"
 [env]
   PORT = "4000"
   NODE_ENV = "production"
+  APP_URL = "https://ai-workflow-lab-web.vercel.app"
+  API_URL = "https://saas-platform-api-kind-fire-7734.fly.dev"
 
 [http_service]
   internal_port = 4000

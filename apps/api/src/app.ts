@@ -14,6 +14,8 @@ import { orgRouter } from './modules/organization/organization.routes.js';
 import { permissionRouter } from './modules/permission/permission.routes.js';
 import { appsRouter } from './modules/apps/apps.routes.js';
 import { adminAppsRouter } from './modules/admin/apps.routes.js';
+import { subscriptionRouter } from './modules/subscription/subscription.routes.js';
+import { webhookRouter } from './modules/webhook/webhook.routes.js';
 import { industries } from './data/industries.js';
 
 /** 创建并配置 Express 应用实例 */
@@ -21,6 +23,11 @@ export function createApp(): Express {
   const app = express();
 
   app.use(cors({ origin: env.APP_URL, credentials: true }));
+
+  // Webhook 路由需要 raw body 用于 Paddle 签名验证
+  app.use('/api/v1/webhooks', express.raw({ type: 'application/json' }), webhookRouter);
+
+  // 其他路由使用 JSON 解析
   app.use(express.json());
 
   /**
@@ -50,6 +57,7 @@ export function createApp(): Express {
   app.use('/api/v1/permissions', permissionRouter);
   app.use('/api/v1/apps', appsRouter);
   app.use('/api/v1/admin', adminAppsRouter);
+  app.use('/api/v1/subscriptions', subscriptionRouter);
 
   // 行业数据（静态 JSON，24h 缓存）
   app.get('/api/v1/industries', (_req, res) => {

@@ -10,7 +10,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/cn';
-import { useAuthStore } from '@/stores/auth';
+import { useAuthStore, type AuthState } from '@/stores/auth';
 import { useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Shield, LayoutDashboard, Grid3x3, Users, CreditCard, Settings } from 'lucide-react';
 
@@ -34,8 +34,8 @@ interface SidebarProps {
 export function Sidebar({ locale, mobileOpen, onClose, collapsed, onToggleCollapse, mounted }: SidebarProps) {
   const t = useTranslations('sidebar');
   const pathname = usePathname();
-  const user = useAuthStore((s) => s.user);
-  const orgName = useAuthStore((s) => s.orgName);
+  const user = useAuthStore((s: AuthState) => s.user);
+  const orgName = useAuthStore((s: AuthState) => s.orgName);
 
   useEffect(() => {
     if (mobileOpen) {

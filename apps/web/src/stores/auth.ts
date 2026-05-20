@@ -14,7 +14,7 @@ interface User {
 }
 
 /** 认证 Store 类型 */
-interface AuthState {
+export interface AuthState {
   accessToken: string | null;
   refreshToken: string | null;
   user: User | null;

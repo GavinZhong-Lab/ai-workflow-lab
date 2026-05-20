@@ -21,6 +21,7 @@ export class AdminAppsService {
     iconUrl?: string;
     isGeneral: boolean;
     isFeatured: boolean;
+    isPaid: boolean;
     industries: string[];
     sortOrder: number;
     isActive: boolean;
@@ -40,6 +41,7 @@ export class AdminAppsService {
     iconUrl?: string;
     isGeneral?: boolean;
     isFeatured?: boolean;
+    isPaid?: boolean;
     industries?: string[];
     sortOrder?: number;
     isActive?: boolean;

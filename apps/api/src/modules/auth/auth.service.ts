@@ -7,6 +7,7 @@ import crypto from 'crypto';
 import { prisma } from '../../lib/prisma.js';
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../../lib/jwt.js';
 import { assignDefaultPermissions } from '../../lib/rbac.js';
+import { checkMemberLimit } from '../../middleware/member-limit.js';
 import { ErrorCode } from '@saas/shared';
 
 /** 认证业务服务 */
@@ -37,6 +38,13 @@ export class AuthService {
       if (invitation.email !== email) {
         return { code: ErrorCode.INVITATION_EMAIL_MISMATCH, data: null, message: 'Email does not match the invitation' };
       }
+
+      // 检查成员人数上限
+      const limitCheck = await checkMemberLimit(invitation.organizationId, 1);
+      if (!limitCheck.allowed) {
+        return { code: ErrorCode.FORBIDDEN, data: null, message: limitCheck.message };
+      }
+
       acceptOrgId = invitation.organizationId;
     }
 

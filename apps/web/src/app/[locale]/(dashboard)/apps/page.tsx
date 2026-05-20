@@ -15,6 +15,7 @@ interface AppItem {
   iconUrl: string | null;
   isGeneral: boolean;
   isFeatured: boolean;
+  isPaid: boolean;
 }
 
 interface Banner {
@@ -145,9 +146,14 @@ export default function AppsMarketplacePage({ params }: { params: { locale: stri
                   <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500/20 to-amber-600/20 flex items-center justify-center text-amber-500 font-bold text-lg">
                     {app.name[0]}
                   </div>
-                  <h3 className="font-semibold text-[rgb(var(--color-text))] group-hover:text-amber-500 transition-colors">
-                    {app.name}
-                  </h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-semibold text-[rgb(var(--color-text))] group-hover:text-amber-500 transition-colors">
+                      {app.name}
+                    </h3>
+                    {app.isPaid && (
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-500/10 text-purple-400 border border-purple-500/20">付费</span>
+                    )}
+                  </div>
                 </div>
                 <p className="text-sm text-[rgb(var(--color-text-muted))] line-clamp-2">{app.description}</p>
               </motion.button>
@@ -176,9 +182,14 @@ export default function AppsMarketplacePage({ params }: { params: { locale: stri
                 <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-500/15 to-amber-600/15 flex items-center justify-center text-amber-500 font-bold text-sm mb-2">
                   {app.name[0]}
                 </div>
-                <h3 className="text-sm font-medium text-[rgb(var(--color-text))] group-hover:text-amber-500 transition-colors">
-                  {app.name}
-                </h3>
+                <div className="flex items-center gap-1.5">
+                  <h3 className="text-sm font-medium text-[rgb(var(--color-text))] group-hover:text-amber-500 transition-colors">
+                    {app.name}
+                  </h3>
+                  {app.isPaid && (
+                    <span className="px-1 py-0.5 rounded text-[9px] font-medium bg-purple-500/10 text-purple-400 border border-purple-500/20">付费</span>
+                  )}
+                </div>
                 <p className="text-xs text-[rgb(var(--color-text-muted))] mt-1 line-clamp-2">{app.description}</p>
                 <div className="mt-3 flex items-center text-xs text-amber-500 opacity-0 group-hover:opacity-100 transition-opacity">
                   {t('viewDetails')} <ArrowRight className="w-3 h-3 ml-1" />

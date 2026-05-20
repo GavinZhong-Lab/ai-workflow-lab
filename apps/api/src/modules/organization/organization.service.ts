@@ -5,6 +5,7 @@ import crypto from 'crypto';
 import { prisma } from '../../lib/prisma.js';
 import { sendInvitationEmail } from '../../lib/email.js';
 import { assignDefaultPermissions } from '../../lib/rbac.js';
+import { checkMemberLimit } from '../../middleware/member-limit.js';
 import { ErrorCode } from '@saas/shared';
 import type { CreateOrgInput, UpdateOrgInput } from './organization.schema.js';
 
@@ -103,6 +104,12 @@ export class OrganizationService {
       return { code: ErrorCode.INVITATION_ALREADY_SENT, data: null, message: 'Invitation already sent to this email' };
     }
 
+    // 检查成员人数上限
+    const limitCheck = await checkMemberLimit(orgId, 1);
+    if (!limitCheck.allowed) {
+      return { code: ErrorCode.FORBIDDEN, data: null, message: limitCheck.message };
+    }
+
     // 创建邀请
     const token = crypto.randomUUID();
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
@@ -137,6 +144,12 @@ export class OrganizationService {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user || user.email !== invitation.email) {
       return { code: ErrorCode.INVITATION_EMAIL_MISMATCH, data: null, message: 'Email does not match invitation' };
+    }
+
+    // 检查成员人数上限
+    const limitCheck = await checkMemberLimit(invitation.organizationId, 1);
+    if (!limitCheck.allowed) {
+      return { code: ErrorCode.FORBIDDEN, data: null, message: limitCheck.message };
     }
 
     // 事务：添加成员 + 标记邀请为已接受

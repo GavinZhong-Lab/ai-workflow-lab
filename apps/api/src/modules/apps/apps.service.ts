@@ -33,6 +33,7 @@ export class AppsService {
         iconUrl: true,
         isGeneral: true,
         isFeatured: true,
+        isPaid: true,
         industries: true,
         sortOrder: true,
       },

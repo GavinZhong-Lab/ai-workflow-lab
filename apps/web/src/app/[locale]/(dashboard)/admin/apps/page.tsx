@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { Plus, Pencil, Trash2, X, Shield } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useTranslations } from '@/hooks/use-translations';
+import { IndustryMultiSelect } from '@/components/ui/industry-multi-select';
 
 interface AppItem {
   id: string;
@@ -14,6 +15,7 @@ interface AppItem {
   iconUrl: string | null;
   isGeneral: boolean;
   isFeatured: boolean;
+  isPaid: boolean;
   isActive: boolean;
   industries: string[];
   sortOrder: number;
@@ -111,7 +113,7 @@ export default function AdminAppsPage() {
   const [confirmTarget, setConfirmTarget] = useState<{ type: 'app' | 'banner'; id: string } | null>(null);
 
   const [form, setForm] = useState({
-    key: '', name: '', description: '', iconUrl: '', isGeneral: false, isFeatured: false, isActive: true, sortOrder: 0, industries: '',
+    key: '', name: '', description: '', iconUrl: '', isGeneral: false, isFeatured: false, isPaid: false, isActive: true, sortOrder: 0, industries: [] as string[],
     title: '', imageUrl: '', linkAppKey: '',
   });
 
@@ -133,7 +135,7 @@ export default function AdminAppsPage() {
 
   // --- App actions ---
   const openCreateApp = () => {
-    setForm({ key: '', name: '', description: '', iconUrl: '', isGeneral: false, isFeatured: false, isActive: true, sortOrder: 0, industries: '', title: '', imageUrl: '', linkAppKey: '' });
+    setForm({ key: '', name: '', description: '', iconUrl: '', isGeneral: false, isFeatured: false, isPaid: false, isActive: true, sortOrder: 0, industries: [], title: '', imageUrl: '', linkAppKey: '' });
     setModalType('app-create');
   };
 
@@ -141,20 +143,20 @@ export default function AdminAppsPage() {
     setEditingId(app.id);
     setForm({
       key: app.key, name: app.name, description: app.description || '', iconUrl: app.iconUrl || '',
-      isGeneral: app.isGeneral, isFeatured: app.isFeatured, isActive: app.isActive,
-      sortOrder: app.sortOrder, industries: (app.industries as string[]).join(', '),
+      isGeneral: app.isGeneral, isFeatured: app.isFeatured, isPaid: app.isPaid, isActive: app.isActive,
+      sortOrder: app.sortOrder, industries: (app.industries as string[]) || [],
       title: '', imageUrl: '', linkAppKey: '',
     });
     setModalType('app-edit');
   };
 
   const saveApp = async () => {
-    const industries = form.industries.split(',').map((s) => s.trim()).filter(Boolean);
+    const industries = form.industries.filter((s) => s !== '');
     if (modalType === 'app-edit' && editingId) {
-      const body = { name: form.name, description: form.description || undefined, iconUrl: form.iconUrl || undefined, isGeneral: form.isGeneral, isFeatured: form.isFeatured, isActive: form.isActive, sortOrder: form.sortOrder, industries };
+      const body = { name: form.name, description: form.description || undefined, iconUrl: form.iconUrl || undefined, isGeneral: form.isGeneral, isFeatured: form.isFeatured, isPaid: form.isPaid, isActive: form.isActive, sortOrder: form.sortOrder, industries };
       await api.patch(`/api/v1/admin/apps/${editingId}`, body);
     } else {
-      const body = { key: form.key, name: form.name, description: form.description || undefined, iconUrl: form.iconUrl || undefined, isGeneral: form.isGeneral, isFeatured: form.isFeatured, isActive: form.isActive, sortOrder: form.sortOrder, industries };
+      const body = { key: form.key, name: form.name, description: form.description || undefined, iconUrl: form.iconUrl || undefined, isGeneral: form.isGeneral, isFeatured: form.isFeatured, isPaid: form.isPaid, isActive: form.isActive, sortOrder: form.sortOrder, industries };
       await api.post('/api/v1/admin/apps', body);
     }
     closeModal();
@@ -163,13 +165,13 @@ export default function AdminAppsPage() {
 
   // --- Banner actions ---
   const openCreateBanner = () => {
-    setForm({ key: '', name: '', description: '', iconUrl: '', isGeneral: false, isFeatured: false, isActive: true, sortOrder: 0, industries: '', title: '', imageUrl: '', linkAppKey: '' });
+    setForm({ key: '', name: '', description: '', iconUrl: '', isGeneral: false, isFeatured: false, isActive: true, sortOrder: 0, industries: [], title: '', imageUrl: '', linkAppKey: '' });
     setModalType('banner-create');
   };
 
   const openEditBanner = (b: BannerItem) => {
     setEditingId(b.id);
-    setForm({ key: '', name: '', description: b.description || '', iconUrl: '', isGeneral: false, isFeatured: false, isActive: b.isActive, sortOrder: b.sortOrder, industries: '', title: b.title, imageUrl: b.imageUrl, linkAppKey: b.linkAppKey || '' });
+    setForm({ key: '', name: '', description: b.description || '', iconUrl: '', isGeneral: false, isFeatured: false, isActive: b.isActive, sortOrder: b.sortOrder, industries: [], title: b.title, imageUrl: b.imageUrl, linkAppKey: b.linkAppKey || '' });
     setModalType('banner-edit');
   };
 
@@ -267,6 +269,7 @@ export default function AdminAppsPage() {
                   <th className="text-left p-3 text-[rgb(var(--color-text-muted))] font-medium">{t('key')}</th>
                   <th className="text-center p-3 text-[rgb(var(--color-text-muted))] font-medium">{t('isGeneral')}</th>
                   <th className="text-center p-3 text-[rgb(var(--color-text-muted))] font-medium">{t('isFeatured')}</th>
+                  <th className="text-center p-3 text-[rgb(var(--color-text-muted))] font-medium">Paid</th>
                   <th className="text-center p-3 text-[rgb(var(--color-text-muted))] font-medium">{t('isActive')}</th>
                   <th className="text-center p-3 text-[rgb(var(--color-text-muted))] font-medium">{t('sortOrder')}</th>
                   <th className="text-right p-3 text-[rgb(var(--color-text-muted))] font-medium">{tc('actions' as never)}</th>
@@ -279,6 +282,7 @@ export default function AdminAppsPage() {
                     <td className="p-3 text-[rgb(var(--color-text-muted))] font-mono text-xs">{app.key}</td>
                     <td className="p-3 text-center">{app.isGeneral ? '✓' : ''}</td>
                     <td className="p-3 text-center">{app.isFeatured ? '✓' : ''}</td>
+                    <td className="p-3 text-center">{app.isPaid ? '💰' : ''}</td>
                     <td className="p-3 text-center"><span className={`inline-block w-2 h-2 rounded-full ${app.isActive ? 'bg-green-500' : 'bg-red-500'}`} /></td>
                     <td className="p-3 text-center text-[rgb(var(--color-text-muted))]">{app.sortOrder}</td>
                     <td className="p-3">
@@ -290,7 +294,7 @@ export default function AdminAppsPage() {
                   </tr>
                 ))}
                 {apps.length === 0 && (
-                  <tr><td colSpan={7} className="p-8 text-center text-[rgb(var(--color-text-muted))]">{tc('noData')}</td></tr>
+                  <tr><td colSpan={8} className="p-8 text-center text-[rgb(var(--color-text-muted))]">{tc('noData')}</td></tr>
                 )}
               </tbody>
             </table>
@@ -365,12 +369,13 @@ export default function AdminAppsPage() {
             <input value={form.iconUrl} onChange={(e) => setForm({ ...form, iconUrl: e.target.value })} className="w-full px-3 py-1.5 rounded-lg bg-[rgb(var(--color-bg))] border border-[rgb(var(--color-border))] text-sm text-[rgb(var(--color-text))]" />
           </div>
           <div>
-            <label className="block text-xs text-[rgb(var(--color-text-muted))] mb-1">{t('industries')} (comma separated)</label>
-            <input value={form.industries} onChange={(e) => setForm({ ...form, industries: e.target.value })} placeholder="互联网/信息技术/软件开发, 教育/在线教育/K12" className="w-full px-3 py-1.5 rounded-lg bg-[rgb(var(--color-bg))] border border-[rgb(var(--color-border))] text-sm text-[rgb(var(--color-text))]" />
+            <label className="block text-xs text-[rgb(var(--color-text-muted))] mb-1">{t('industries')}</label>
+            <IndustryMultiSelect value={form.industries} onChange={(v) => setForm({ ...form, industries: v })} />
           </div>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-4 gap-3">
             <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.isGeneral} onChange={(e) => setForm({ ...form, isGeneral: e.target.checked })} />{t('isGeneral')}</label>
             <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.isFeatured} onChange={(e) => setForm({ ...form, isFeatured: e.target.checked })} />{t('isFeatured')}</label>
+            <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.isPaid} onChange={(e) => setForm({ ...form, isPaid: e.target.checked })} />Paid</label>
             <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} />{t('isActive')}</label>
           </div>
           <div>

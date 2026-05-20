@@ -14,34 +14,95 @@ async function main() {
   // ======== 订阅计划 ========
   const freePlan = await prisma.subscriptionPlan.upsert({
     where: { id: 'plan-free' },
-    update: {},
+    update: {
+      name: 'Free',
+      baseAmountCents: 0,
+      perPersonAmountCents: 0,
+      currency: 'cny',
+      features: JSON.stringify(['最多 3 名成员', '7 天付费应用试用']),
+    },
     create: {
       id: 'plan-free',
       name: 'Free',
       billingPeriod: null,
-      amountCents: 0,
-      currency: 'usd',
-      features: JSON.stringify(['Up to 3 members', '1 application', 'Basic features']),
+      baseAmountCents: 0,
+      perPersonAmountCents: 0,
+      paddleBasePriceId: null,
+      paddlePerPersonPriceId: null,
+      currency: 'cny',
+      features: JSON.stringify(['最多 3 名成员', '7 天付费应用试用']),
       sortOrder: 0,
     },
   });
 
-  const proPlan = await prisma.subscriptionPlan.upsert({
+  const proMonthly = await prisma.subscriptionPlan.upsert({
     where: { id: 'plan-pro-monthly' },
-    update: {},
+    update: {
+      name: 'Pro (月付)',
+      baseAmountCents: 9900,
+      perPersonAmountCents: 2000,
+      currency: 'cny',
+      features: JSON.stringify(['最多等于开通人数', '全部应用', '全部功能', '优先支持']),
+    },
     create: {
       id: 'plan-pro-monthly',
-      name: 'Pro',
+      name: 'Pro (月付)',
       billingPeriod: 'monthly',
-      stripePriceId: null,
-      amountCents: 2900,
-      currency: 'usd',
-      features: JSON.stringify(['Up to 20 members', '5 applications', 'All features', 'Priority support']),
+      baseAmountCents: 9900,
+      perPersonAmountCents: 2000,
+      paddleBasePriceId: null,  // 在 Paddle Dashboard 创建后填入
+      paddlePerPersonPriceId: null,
+      currency: 'cny',
+      features: JSON.stringify(['最多等于开通人数', '全部应用', '全部功能', '优先支持']),
       sortOrder: 1,
     },
   });
 
-  console.log('Plans seeded:', freePlan.name, proPlan.name);
+  const proYearly = await prisma.subscriptionPlan.upsert({
+    where: { id: 'plan-pro-yearly' },
+    update: {
+      baseAmountCents: 99000,
+      perPersonAmountCents: 20000,
+      currency: 'cny',
+      features: JSON.stringify(['最多等于开通人数', '全部应用', '全部功能', '优先支持', '年付享 8.3 折']),
+    },
+    create: {
+      id: 'plan-pro-yearly',
+      name: 'Pro (年付)',
+      billingPeriod: 'yearly',
+      baseAmountCents: 99000,
+      perPersonAmountCents: 20000,
+      paddleBasePriceId: null,
+      paddlePerPersonPriceId: null,
+      currency: 'cny',
+      features: JSON.stringify(['最多等于开通人数', '全部应用', '全部功能', '优先支持', '年付享 8.3 折']),
+      sortOrder: 2,
+    },
+  });
+
+  const enterpriseYearly = await prisma.subscriptionPlan.upsert({
+    where: { id: 'plan-enterprise-yearly' },
+    update: {
+      baseAmountCents: 299000,
+      perPersonAmountCents: 50000,
+      currency: 'cny',
+      features: JSON.stringify(['不限成员', '全部应用', '全部功能', 'AI 使用次数提升（后续上线）', 'SaaS 业务数据统计（后续上线）', '更多自动化流程（后续上线）', '专属客户经理', 'SLA 保障']),
+    },
+    create: {
+      id: 'plan-enterprise-yearly',
+      name: 'Enterprise (年付)',
+      billingPeriod: 'yearly',
+      baseAmountCents: 299000,
+      perPersonAmountCents: 50000,
+      paddleBasePriceId: null,
+      paddlePerPersonPriceId: null,
+      currency: 'cny',
+      features: JSON.stringify(['不限成员', '全部应用', '全部功能', 'AI 使用次数提升（后续上线）', 'SaaS 业务数据统计（后续上线）', '更多自动化流程（后续上线）', '专属客户经理', 'SLA 保障']),
+      sortOrder: 3,
+    },
+  });
+
+  console.log('Plans seeded:', freePlan.name, proMonthly.name, proYearly.name, enterpriseYearly.name);
 
   // ======== 超级管理员 ========
   const superAdminPassword = await bcrypt.hash('SuperAdmin123', 12);
@@ -54,42 +115,42 @@ async function main() {
 
   // ======== 示例应用 ========
   const appDefs = [
-    { name: 'CRM', key: 'crm', description: 'Customer relationship management — track leads, deals, and contacts', iconUrl: null, isGeneral: true, isFeatured: true, industries: [], sortOrder: 0, modules: [
+    { name: 'CRM', key: 'crm', description: 'Customer relationship management — track leads, deals, and contacts', iconUrl: null, isGeneral: true, isFeatured: true, isPaid: true, industries: [], sortOrder: 0, modules: [
       { name: 'Leads', key: 'leads', description: 'Manage and track sales leads' },
       { name: 'Contacts', key: 'contacts', description: 'Customer contact directory' },
       { name: 'Deals', key: 'deals', description: 'Sales pipeline and deal tracking' },
       { name: 'Reports', key: 'reports', description: 'Sales analytics and reports' },
     ]},
-    { name: 'HR', key: 'hr', description: 'Human resources — employee records, attendance, and onboarding', iconUrl: null, isGeneral: true, isFeatured: true, industries: [], sortOrder: 1, modules: [
+    { name: 'HR', key: 'hr', description: 'Human resources — employee records, attendance, and onboarding', iconUrl: null, isGeneral: true, isFeatured: true, isPaid: false, industries: [], sortOrder: 1, modules: [
       { name: 'Employees', key: 'employees', description: 'Employee directory and profiles' },
       { name: 'Attendance', key: 'attendance', description: 'Time tracking and attendance records' },
       { name: 'Onboarding', key: 'onboarding', description: 'New hire onboarding workflows' },
     ]},
-    { name: 'Project Management', key: 'projects', description: 'Project management — tasks, timelines, and team collaboration', iconUrl: null, isGeneral: true, isFeatured: true, industries: [], sortOrder: 2, modules: [
+    { name: 'Project Management', key: 'projects', description: 'Project management — tasks, timelines, and team collaboration', iconUrl: null, isGeneral: true, isFeatured: true, isPaid: false, industries: [], sortOrder: 2, modules: [
       { name: 'Tasks', key: 'tasks', description: 'Task management and assignment' },
       { name: 'Timeline', key: 'timeline', description: 'Project timeline and Gantt charts' },
       { name: 'Team', key: 'team', description: 'Team collaboration and communication' },
       { name: 'Docs', key: 'docs', description: 'Project documentation and wiki' },
     ]},
-    { name: 'E-commerce', key: 'ecommerce', description: 'E-commerce platform — products, orders, and inventory management', iconUrl: null, isGeneral: false, isFeatured: true, industries: ['电子商务/B2C/综合电商', '电子商务/D2C/独立站'], sortOrder: 3, modules: [
+    { name: 'E-commerce', key: 'ecommerce', description: 'E-commerce platform — products, orders, and inventory management', iconUrl: null, isGeneral: false, isFeatured: true, isPaid: true, industries: ['电子商务/B2C/综合电商', '电子商务/D2C/独立站'], sortOrder: 3, modules: [
       { name: 'Products', key: 'products', description: 'Product catalog management' },
       { name: 'Orders', key: 'orders', description: 'Order processing and fulfillment' },
       { name: 'Inventory', key: 'inventory', description: 'Stock and warehouse management' },
     ]},
-    { name: 'Online Education', key: 'edu', description: 'Online education — course creation, student management, and assessments', iconUrl: null, isGeneral: false, isFeatured: true, industries: ['教育/在线教育/K12', '教育/在线教育/职业教育'], sortOrder: 4, modules: [
+    { name: 'Online Education', key: 'edu', description: 'Online education — course creation, student management, and assessments', iconUrl: null, isGeneral: false, isFeatured: true, isPaid: true, industries: ['教育/在线教育/K12', '教育/在线教育/职业教育'], sortOrder: 4, modules: [
       { name: 'Courses', key: 'courses', description: 'Course creation and curriculum design' },
       { name: 'Students', key: 'students', description: 'Student enrollment and progress tracking' },
       { name: 'Assessments', key: 'assessments', description: 'Quizzes, exams, and grading' },
     ]},
-    { name: 'Healthcare', key: 'healthcare', description: 'Healthcare management — patient records, appointments, and prescriptions', iconUrl: null, isGeneral: false, isFeatured: false, industries: ['医疗/医疗信息化/电子病历', '医疗/互联网医疗/在线问诊'], sortOrder: 5, modules: [
+    { name: 'Healthcare', key: 'healthcare', description: 'Healthcare management — patient records, appointments, and prescriptions', iconUrl: null, isGeneral: false, isFeatured: false, isPaid: true, industries: ['医疗/医疗信息化/电子病历', '医疗/互联网医疗/在线问诊'], sortOrder: 5, modules: [
       { name: 'Patients', key: 'patients', description: 'Patient records and history' },
       { name: 'Appointments', key: 'appointments', description: 'Scheduling and calendar management' },
     ]},
-    { name: 'FinTech', key: 'fintech', description: 'Financial technology — risk assessment, lending, and compliance', iconUrl: null, isGeneral: false, isFeatured: false, industries: ['金融/金融科技/支付', '金融/金融科技/风控'], sortOrder: 6, modules: [
+    { name: 'FinTech', key: 'fintech', description: 'Financial technology — risk assessment, lending, and compliance', iconUrl: null, isGeneral: false, isFeatured: false, isPaid: true, industries: ['金融/金融科技/支付', '金融/金融科技/风控'], sortOrder: 6, modules: [
       { name: 'Risk', key: 'risk', description: 'Risk assessment and scoring' },
       { name: 'Compliance', key: 'compliance', description: 'Regulatory compliance tracking' },
     ]},
-    { name: 'Demo App', key: 'demo', description: 'Default demo application for testing platform features', iconUrl: null, isGeneral: true, isFeatured: false, industries: [], sortOrder: 99, modules: [
+    { name: 'Demo App', key: 'demo', description: 'Default demo application for testing platform features', iconUrl: null, isGeneral: true, isFeatured: false, isPaid: false, industries: [], sortOrder: 99, modules: [
       { name: 'Dashboard', key: 'dashboard', description: 'Overview and analytics' },
       { name: 'Settings', key: 'settings', description: 'Application configuration' },
     ]},
@@ -105,6 +166,7 @@ async function main() {
         description: appDef.description,
         isGeneral: appDef.isGeneral,
         isFeatured: appDef.isFeatured,
+        isPaid: appDef.isPaid,
         industries: appDef.industries,
         sortOrder: appDef.sortOrder,
       },
@@ -115,6 +177,7 @@ async function main() {
         iconUrl: appDef.iconUrl,
         isGeneral: appDef.isGeneral,
         isFeatured: appDef.isFeatured,
+        isPaid: appDef.isPaid,
         industries: appDef.industries,
         sortOrder: appDef.sortOrder,
       },

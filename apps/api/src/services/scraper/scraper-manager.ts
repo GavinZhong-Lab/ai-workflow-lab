@@ -163,9 +163,11 @@ class ScraperManager {
       // 启动浏览器
       this.browser = await puppeteer.launch({
         headless: true,
+        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
+          '--disable-gpu',
           '--disable-blink-features=AutomationControlled',
           '--disable-dev-shm-usage',
         ],

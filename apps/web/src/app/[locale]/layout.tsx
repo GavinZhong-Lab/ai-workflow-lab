@@ -1,7 +1,3 @@
-/**
- * 根布局组件
- * 配置 HTML 文档结构、主题、全局样式
- */
 import type { Metadata } from 'next';
 import { Providers } from '@/components/providers';
 import '@/styles/globals.css';

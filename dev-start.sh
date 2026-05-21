@@ -99,12 +99,13 @@ fi
 
 # 数据库迁移（如 Prisma migrations 未应用）
 log "Running Prisma migrations..."
-cd apps/api && pnpm db:migrate 2>/dev/null && cd "$SCRIPT_DIR" || true
+(cd apps/api && pnpm db:migrate 2>/dev/null) || true
 
 # 4. 启动前后端
 log "[4/4] Starting frontend & backend..."
 
 # 后端
+cd "$SCRIPT_DIR"
 cd apps/api
 npx tsx watch --env-file=.env src/index.ts > /tmp/saas-api.log 2>&1 &
 API_PID=$!
@@ -112,8 +113,9 @@ echo $API_PID > /tmp/saas-api.pid
 cd "$SCRIPT_DIR"
 
 # 前端
+cd "$SCRIPT_DIR"
 cd apps/web
-npx next dev --port 3000 > /tmp/saas-web.log 2>&1 &
+npx next dev --port 3000 --turbo > /tmp/saas-web.log 2>&1 &
 WEB_PID=$!
 echo $WEB_PID > /tmp/saas-web.pid
 cd "$SCRIPT_DIR"

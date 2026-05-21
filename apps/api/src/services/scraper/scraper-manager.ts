@@ -167,9 +167,19 @@ class ScraperManager {
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
-          '--disable-gpu',
-          '--disable-blink-features=AutomationControlled',
           '--disable-dev-shm-usage',
+          '--disable-gpu',
+          '--disable-extensions',
+          '--disable-background-networking',
+          '--disable-sync',
+          '--disable-translate',
+          '--disable-default-apps',
+          '--hide-scrollbars',
+          '--mute-audio',
+          '--no-first-run',
+          '--disable-component-update',
+          '--disable-blink-features=AutomationControlled',
+          '--js-flags=--max-old-space-size=64',
         ],
       });
 

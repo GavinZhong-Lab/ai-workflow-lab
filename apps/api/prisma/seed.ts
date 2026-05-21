@@ -154,6 +154,9 @@ async function main() {
       { name: 'Dashboard', key: 'dashboard', description: 'Overview and analytics' },
       { name: 'Settings', key: 'settings', description: 'Application configuration' },
     ]},
+    { name: 'XC-AiReader', key: 'xc-aireader', description: 'AI-powered novel reader with translation support', iconUrl: null, isGeneral: true, isFeatured: true, isPaid: false, industries: [], sortOrder: 10, modules: [
+      { name: 'Reader', key: 'reader', description: 'Read novels and manage favorites' },
+    ]},
   ];
 
   const modulePermissionMap: Record<string, string[]> = {};
@@ -327,6 +330,141 @@ async function main() {
   console.log('  owner@test.com  / Test123456 — Owner (full access)');
   console.log('  admin@test.com  / Test123456 — Admin');
   console.log('  member@test.com / Test123456 — Member (read only)');
+
+  // ======== Reader App 种子数据 ========
+
+  // --- 示例小说 ---
+  const novelSeeds = [
+    {
+      title: '星辰变',
+      author: '我吃西红柿',
+      description: '一部修真玄幻小说，讲述了一个少年从凡人到宇宙之主的成长历程。星辰变功法，逆转乾坤，掌控星辰之力。',
+      category: '玄幻',
+      status: 'COMPLETED',
+      sourceType: 'UPLOAD',
+      isFeatured: true,
+      sortOrder: 1,
+      chapters: [
+        { chapterIndex: 1, title: '第一章 秦羽', content: '秦羽睁开眼，发现自己躺在一张木床上...这是一个修炼的世界，强者为王。他暗暗发誓，一定要成为强者，保护自己在意的人。', wordCount: 1200 },
+        { chapterIndex: 2, title: '第二章 星辰诀', content: '秦羽意外获得了一本上古秘籍《星辰诀》。这本功法以星辰之力淬炼肉身，修炼到极致可化身星辰，不死不灭。', wordCount: 1100 },
+        { chapterIndex: 3, title: '第三章 初入修炼', content: '在师傅的指导下，秦羽开始了艰苦的修炼之路。每天天不亮就起床打坐，吸收天地灵气，淬炼经脉。', wordCount: 1050 },
+      ],
+    },
+    {
+      title: '全职高手',
+      author: '蝴蝶蓝',
+      description: '网游竞技小说的巅峰之作，讲述电竞选手叶修被俱乐部驱逐后，在网吧重新开始，重返荣耀巅峰的传奇故事。',
+      category: '游戏',
+      status: 'COMPLETED',
+      sourceType: 'UPLOAD',
+      isFeatured: true,
+      sortOrder: 2,
+      chapters: [
+        { chapterIndex: 1, title: '第一章 被驱逐的高手', content: '叶修站在嘉世俱乐部门口，手里拿着解约书。被称为「荣耀教科书」的他，竟然也有被扫地出门的一天。', wordCount: 1300 },
+        { chapterIndex: 2, title: '第二章 兴欣网吧', content: '叶修来到了兴欣网吧，遇到了老板陈果。他决定在这里重新开始，用新号「君莫笑」再战荣耀。', wordCount: 1250 },
+      ],
+    },
+    {
+      title: '三体',
+      author: '刘慈欣',
+      description: '中国科幻文学的里程碑之作，讲述了地球文明与三体文明的信息交流、生死搏杀，以及宇宙中的黑暗森林法则。',
+      category: '科幻',
+      status: 'COMPLETED',
+      sourceType: 'UPLOAD',
+      isFeatured: false,
+      sortOrder: 3,
+      chapters: [
+        { chapterIndex: 1, title: '第一章 科学边界', content: '汪淼被邀请加入一个名为「科学边界」的组织。全球的科学家们正面临一个诡异的现象——物理学似乎不存在了。', wordCount: 1500 },
+      ],
+    },
+  ];
+
+  for (const ns of novelSeeds) {
+    const { chapters, ...novelData } = ns;
+    const novel = await prisma.novel.upsert({
+      where: { id: `novel-${ns.title}` },
+      update: { ...novelData },
+      create: { id: `novel-${ns.title}`, ...novelData },
+    });
+
+    for (const ch of chapters) {
+      await prisma.chapter.upsert({
+        where: { novelId_chapterIndex: { novelId: novel.id, chapterIndex: ch.chapterIndex } },
+        update: ch,
+        create: { ...ch, novelId: novel.id },
+      });
+    }
+
+    // Update wordCount from chapters
+    const totalWords = await prisma.chapter.aggregate({
+      where: { novelId: novel.id },
+      _sum: { wordCount: true },
+    });
+    await prisma.novel.update({
+      where: { id: novel.id },
+      data: { wordCount: totalWords._sum.wordCount ?? 0 },
+    });
+  }
+  console.log(`${novelSeeds.length} novels with chapters seeded`);
+
+  // --- Reader Banners ---
+  const readerBannerDefs = [
+    { title: '热门推荐 - 星辰变', imageUrl: '/banners/banner-1.jpg', sortOrder: 0, isActive: true },
+    { title: '新书上线 - 全职高手', imageUrl: '/banners/banner-2.jpg', sortOrder: 1, isActive: true },
+    { title: '科幻必读 - 三体', imageUrl: '/banners/banner-3.jpg', sortOrder: 2, isActive: true },
+  ];
+
+  for (const bDef of readerBannerDefs) {
+    await prisma.readerBanner.create({
+      data: bDef,
+    });
+  }
+  console.log(`${readerBannerDefs.length} reader banners seeded`);
+
+  // --- 默认翻译配置（未激活，等待配置 API Key） ---
+  const translatorSeeds = [
+    { id: 'translator-deepl', provider: 'DEEPL', name: 'DeepL 翻译', apiKey: '', apiEndpoint: 'https://api-free.deepl.com/v2/translate', priority: 0, isActive: false },
+    { id: 'translator-google', provider: 'GOOGLE', name: 'Google 翻译', apiKey: '', apiEndpoint: 'https://translation.googleapis.com/language/translate/v2', priority: 1, isActive: false },
+  ];
+
+  for (const tDef of translatorSeeds) {
+    await prisma.translationConfig.upsert({
+      where: { id: tDef.id },
+      update: {},
+      create: tDef,
+    });
+  }
+  console.log(`${translatorSeeds.length} translation configs seeded`);
+
+  // --- Reader 权限分配给测试组织 ---
+  const readerPermIds = modulePermissionMap['xc-aireader.reader'] || [];
+  // Owner: manage reader
+  for (const permId of readerPermIds) {
+    await prisma.rolePermission.upsert({
+      where: { roleId_permissionId: { roleId: ownerRole.id, permissionId: permId } },
+      update: {},
+      create: { roleId: ownerRole.id, permissionId: permId },
+    });
+  }
+  // Admin: read reader
+  const readerAdminPermIds = readerPermIds.filter((_, i) => i === 1);
+  for (const permId of readerAdminPermIds) {
+    await prisma.rolePermission.upsert({
+      where: { roleId_permissionId: { roleId: adminRole.id, permissionId: permId } },
+      update: {},
+      create: { roleId: adminRole.id, permissionId: permId },
+    });
+  }
+  // Member: read reader
+  for (const permId of readerAdminPermIds) {
+    await prisma.rolePermission.upsert({
+      where: { roleId_permissionId: { roleId: memberRole.id, permissionId: permId } },
+      update: {},
+      create: { roleId: memberRole.id, permissionId: permId },
+    });
+  }
+  console.log('Reader RBAC permissions seeded');
+
   console.log('');
   console.log('Seed complete!');
 }

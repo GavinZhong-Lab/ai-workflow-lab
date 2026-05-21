@@ -12,7 +12,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/cn';
 import { useAuthStore, type AuthState } from '@/stores/auth';
 import { useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Shield, LayoutDashboard, Grid3x3, Users, CreditCard, Settings } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Shield, LayoutDashboard, Grid3x3, Users, CreditCard, Settings, BookOpen } from 'lucide-react';
 
 const navItems = [
   { key: 'dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -33,6 +33,7 @@ interface SidebarProps {
 
 export function Sidebar({ locale, mobileOpen, onClose, collapsed, onToggleCollapse, mounted }: SidebarProps) {
   const t = useTranslations('sidebar');
+  const tr = useTranslations('reader');
   const pathname = usePathname();
   const user = useAuthStore((s: AuthState) => s.user);
   const orgName = useAuthStore((s: AuthState) => s.orgName);
@@ -136,8 +137,26 @@ export function Sidebar({ locale, mobileOpen, onClose, collapsed, onToggleCollap
               {collapsed && mounted && (
                 <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 px-2.5 py-1.5 rounded-md bg-[rgb(var(--color-surface))] border border-[rgb(var(--color-border))] text-xs font-medium text-[rgb(var(--color-text))] shadow-lg whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-[opacity,visibility] duration-150 delay-200 z-50 pointer-events-none">
                   {t('appManagement')}
-                  <div className="absolute right-full top-1/2 -translate-y-1/2 w-0 h-0 border-y-[5px] border-y-transparent border-r-[5px] border-r-[rgb(var(--color-border))]" />
-                  <div className="absolute right-full top-1/2 -translate-y-1/2 translate-x-px w-0 h-0 border-y-[4px] border-y-transparent border-r-[4px] border-r-[rgb(var(--color-surface))]" />
+                </div>
+              )}
+            </Link>
+            <Link
+              href={`/${locale}/admin/reader`}
+              onClick={onClose}
+              title={collapsed ? tr('admin.readerAdmin') : undefined}
+              className={cn(
+                'group relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200',
+                collapsed && 'justify-center px-2',
+                pathname.startsWith(`/${locale}/admin/reader`)
+                  ? 'bg-amber-500/10 text-amber-500'
+                  : 'text-[rgb(var(--color-text-muted))] hover:text-[rgb(var(--color-text))] hover:bg-[rgb(var(--color-border))]',
+              )}
+            >
+              <BookOpen className="w-5 h-5 shrink-0" />
+              {!collapsed && <span>{tr('admin.readerAdmin')}</span>}
+              {collapsed && mounted && (
+                <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 px-2.5 py-1.5 rounded-md bg-[rgb(var(--color-surface))] border border-[rgb(var(--color-border))] text-xs font-medium text-[rgb(var(--color-text))] shadow-lg whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-[opacity,visibility] duration-150 delay-200 z-50 pointer-events-none">
+                  {tr('admin.readerAdmin')}
                 </div>
               )}
             </Link>

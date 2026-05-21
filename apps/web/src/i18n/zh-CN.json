@@ -164,5 +164,143 @@
     "deleteConfirmDesc": "此操作无法撤销。",
     "yes": "确定",
     "no": "取消"
+  },
+  "reader": {
+    "browse": {
+      "backToMarketplace": "返回应用市场",
+      "searchPlaceholder": "搜索小说...",
+      "noNovelsFound": "暂无小说",
+      "allNovels": "全部小说",
+      "myFavorites": "我的收藏",
+      "continueReading": "继续阅读",
+      "noFavoritesYet": "还没有收藏任何小说"
+    },
+    "detail": {
+      "backToBrowse": "浏览",
+      "chapters": "章节目录",
+      "noChaptersYet": "暂无章节",
+      "favorites": "收藏",
+      "statusCompleted": "已完结",
+      "statusSerial": "连载中",
+      "unknownAuthor": "未知",
+      "words": "字",
+      "continueReading": "继续阅读",
+      "continueFromCh": "从第 {index} 章继续",
+      "chaptersCount": "{count} 章"
+    },
+    "reader": {
+      "prevChapter": "上一章",
+      "nextChapter": "下一章",
+      "translate": "翻译",
+      "translating": "翻译中...",
+      "keyboardHint": "使用 ← → 方向键切换章节",
+      "chapterDirectory": "目录",
+      "languageChinese": "中",
+      "languageEnglish": "EN",
+      "translateFull": "翻译全文"
+    },
+    "chapterDir": {
+      "title": "章节目录",
+      "current": "当前"
+    },
+    "category": {
+      "全部": "全部",
+      "玄幻": "玄幻",
+      "仙侠": "仙侠",
+      "都市": "都市",
+      "历史": "历史",
+      "科幻": "科幻",
+      "游戏": "游戏",
+      "悬疑": "悬疑",
+      "轻小说": "轻小说",
+      "短篇": "短篇"
+    },
+    "admin": {
+      "title": "阅读器管理",
+      "subtitle": "管理小说、横幅、翻译器和爬虫引擎",
+      "readerAdmin": "阅读器管理",
+      "tabs": {
+        "novels": "小说",
+        "banners": "横幅",
+        "translators": "翻译器",
+        "scraper": "爬虫"
+      },
+      "novels": {
+        "add": "添加小说",
+        "edit": "编辑小说",
+        "addChapter": "添加章节",
+        "title": "标题",
+        "author": "作者",
+        "category": "分类",
+        "chapters": "章节数",
+        "status": "状态",
+        "actions": "操作",
+        "description": "描述",
+        "sortOrder": "排序",
+        "isActive": "启用",
+        "isFeatured": "精选",
+        "noNovels": "暂无小说"
+      },
+      "banners": {
+        "add": "添加横幅",
+        "edit": "编辑横幅",
+        "title": "标题",
+        "imageUrl": "图片链接",
+        "linkNovelId": "关联小说ID",
+        "sort": "排序",
+        "active": "启用",
+        "noBanners": "暂无横幅"
+      },
+      "translators": {
+        "add": "添加翻译器",
+        "edit": "编辑翻译器",
+        "name": "名称",
+        "provider": "服务商",
+        "apiKey": "API Key",
+        "endpoint": "API端点",
+        "priority": "优先级",
+        "priorityHint": "数字越小优先级越高",
+        "active": "启用",
+        "noTranslators": "暂无翻译器"
+      },
+      "scraper": {
+        "running": "爬虫运行中",
+        "idle": "爬虫空闲",
+        "start": "启动爬虫 (1小时)",
+        "stop": "停止爬虫",
+        "refresh": "刷新",
+        "resume": "续爬",
+        "abandon": "放弃",
+        "stats": {
+          "site": "站点",
+          "novels": "小说",
+          "chapters": "章节",
+          "completed": "已完成",
+          "errors": "错误"
+        },
+        "recentLogs": "最近日志",
+        "incompleteNovels": "未完成小说",
+        "noIncomplete": "没有未完成的小说",
+        "elapsed": "已运行",
+        "remaining": "剩余",
+        "duration": "用时",
+        "chaptersCount": "章节",
+        "lastChapter": "最后章节"
+      },
+      "common": {
+        "save": "保存",
+        "saving": "保存中...",
+        "cancel": "取消",
+        "delete": "删除",
+        "confirmDelete": "确认删除",
+        "confirmDeleteMsg": "确定要删除\"{name}\"？此操作无法撤销。",
+        "active": "已启用",
+        "inactive": "未启用",
+        "select": "请选择...",
+        "chapterIndex": "章节序号",
+        "content": "内容",
+        "wordCount": "字数"
+      }
+    }
   }
 }

@@ -14,6 +14,8 @@ import { orgRouter } from './modules/organization/organization.routes.js';
 import { permissionRouter } from './modules/permission/permission.routes.js';
 import { appsRouter } from './modules/apps/apps.routes.js';
 import { adminAppsRouter } from './modules/admin/apps.routes.js';
+import { readerRouter } from './modules/reader/reader.routes.js';
+import { readerAdminRouter } from './modules/reader/reader-admin.routes.js';
 import { subscriptionRouter } from './modules/subscription/subscription.routes.js';
 import { webhookRouter } from './modules/webhook/webhook.routes.js';
 import { industries } from './data/industries.js';
@@ -67,6 +69,8 @@ export function createApp(): Express {
   app.use('/api/v1/permissions', permissionRouter);
   app.use('/api/v1/apps', appsRouter);
   app.use('/api/v1/admin', adminAppsRouter);
+  app.use('/api/v1/admin', readerAdminRouter);
+  app.use('/api/v1/reader', readerRouter);
   app.use('/api/v1/subscriptions', subscriptionRouter);
 
   // 行业数据（静态 JSON，24h 缓存）

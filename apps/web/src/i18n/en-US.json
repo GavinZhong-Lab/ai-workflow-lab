@@ -164,5 +164,143 @@
     "deleteConfirmDesc": "This action cannot be undone.",
     "yes": "Yes",
     "no": "No"
+  },
+  "reader": {
+    "browse": {
+      "backToMarketplace": "Back to Marketplace",
+      "searchPlaceholder": "Search novels...",
+      "noNovelsFound": "No novels found",
+      "allNovels": "All Novels",
+      "myFavorites": "My Favorites",
+      "continueReading": "Continue Reading",
+      "noFavoritesYet": "No favorites yet"
+    },
+    "detail": {
+      "backToBrowse": "Browse",
+      "chapters": "Chapters",
+      "noChaptersYet": "No chapters yet",
+      "favorites": "favorites",
+      "statusCompleted": "Completed",
+      "statusSerial": "Serializing",
+      "unknownAuthor": "Unknown",
+      "words": "words",
+      "continueReading": "Continue Reading",
+      "continueFromCh": "Continue from Ch.{index}",
+      "chaptersCount": "{count} chapters"
+    },
+    "reader": {
+      "prevChapter": "Prev",
+      "nextChapter": "Next",
+      "translate": "Translate",
+      "translating": "Translating...",
+      "keyboardHint": "Use arrow keys to navigate",
+      "chapterDirectory": "Chapters",
+      "languageChinese": "CN",
+      "languageEnglish": "EN",
+      "translateFull": "Translate All"
+    },
+    "chapterDir": {
+      "title": "Chapters",
+      "current": "Current"
+    },
+    "category": {
+      "全部": "All",
+      "玄幻": "Fantasy",
+      "仙侠": "Xianxia",
+      "都市": "Urban",
+      "历史": "History",
+      "科幻": "Sci-Fi",
+      "游戏": "Gaming",
+      "悬疑": "Mystery",
+      "轻小说": "Light Novel",
+      "短篇": "Short Story"
+    },
+    "admin": {
+      "title": "Reader Admin",
+      "subtitle": "Manage novels, banners, translators, and scraper",
+      "readerAdmin": "Reader Admin",
+      "tabs": {
+        "novels": "Novels",
+        "banners": "Banners",
+        "translators": "Translators",
+        "scraper": "Scraper"
+      },
+      "novels": {
+        "add": "Add Novel",
+        "edit": "Edit Novel",
+        "addChapter": "Add Chapter",
+        "title": "Title",
+        "author": "Author",
+        "category": "Category",
+        "chapters": "Chapters",
+        "status": "Status",
+        "actions": "Actions",
+        "description": "Description",
+        "sortOrder": "Sort Order",
+        "isActive": "Active",
+        "isFeatured": "Featured",
+        "noNovels": "No novels yet"
+      },
+      "banners": {
+        "add": "Add Banner",
+        "edit": "Edit Banner",
+        "title": "Title",
+        "imageUrl": "Image URL",
+        "linkNovelId": "Link Novel ID",
+        "sort": "Sort",
+        "active": "Active",
+        "noBanners": "No banners yet"
+      },
+      "translators": {
+        "add": "Add Translator",
+        "edit": "Edit Translator",
+        "name": "Name",
+        "provider": "Provider",
+        "apiKey": "API Key",
+        "endpoint": "API Endpoint",
+        "priority": "Priority",
+        "priorityHint": "Lower = higher priority",
+        "active": "Active",
+        "noTranslators": "No translators yet"
+      },
+      "scraper": {
+        "running": "Scraper Running",
+        "idle": "Scraper Idle",
+        "start": "Start Scraper (1h)",
+        "stop": "Stop Scraper",
+        "refresh": "Refresh",
+        "resume": "Resume",
+        "abandon": "Abandon",
+        "stats": {
+          "site": "Site",
+          "novels": "Novels",
+          "chapters": "Chapters",
+          "completed": "Completed",
+          "errors": "Errors"
+        },
+        "recentLogs": "Recent Logs",
+        "incompleteNovels": "Incomplete Novels",
+        "noIncomplete": "No incomplete novels",
+        "elapsed": "elapsed",
+        "remaining": "remaining",
+        "duration": "Duration",
+        "chaptersCount": "chapters",
+        "lastChapter": "Last"
+      },
+      "common": {
+        "save": "Save",
+        "saving": "Saving...",
+        "cancel": "Cancel",
+        "delete": "Delete",
+        "confirmDelete": "Confirm Delete",
+        "confirmDeleteMsg": "Delete \"{name}\"? This action cannot be undone.",
+        "active": "Active",
+        "inactive": "Inactive",
+        "select": "Select...",
+        "chapterIndex": "Chapter Index",
+        "content": "Content",
+        "wordCount": "Word Count"
+      }
+    }
   }
 }

@@ -96,9 +96,11 @@ You tend to converge toward generic, "on distribution" outputs. In frontend desi
 - [x] **超级管理员** — 应用管理后台（应用/Banner CRUD）+ 下线应用拦截 + 超管中间件
 - [x] **登录/注册主题语言** — 认证页面支持主题切换 + 完整中英文 i18n
 - [x] **订阅付款集成** — Paddle Billing Checkout + Webhook + 付费应用拦截 + 成员上限 + 前端 Billing 页面
+- [x] **阅读器应用** — 小说浏览/阅读/收藏/进度跟踪 + 6语言翻译 + Puppeteer 爬虫引擎 + 管理后台
 
 ## 最近完成的工作
 
+- 2026-05-21: **阅读器应用完整实现** — 阅读器前后端全链路开发，包含 7 大功能模块：i18n 完整中英文支持（40+ key）、组件拆分（page.tsx 637行→84行路由+5个子组件+hook）、阅读进度保存（2s防抖滚动跟踪+继续阅读卡片+详情页继续按钮）、收藏快速入口（全部/收藏切换+后端字段对齐）、章节目录抽屉（Framer Motion 滑出+自动滚动定位+点击跳转）、阅读界面固定UI（顶栏 sticky+底栏浮动+safe-area适配）、全文翻译模式（6语言选择+段落分割+批量API+结果缓存+loading状态）。爬虫引擎：Puppeteer 采集起点/纵横中文网、断点续爬、优雅停止、实时状态监控、去重检查。翻译服务：支持 OpenAI/DeepL/Custom 多引擎。管理后台：小说/章节/横幅/翻译配置 CRUD + 爬虫控制面板
 - 2026-05-20: **Paddle Billing 集成** — Paddle SDK 封装（checkout/订阅管理/Webhook 验证）、订阅模块（套餐查询/Checkout 创建/取消/付款记录）、Webhook 处理（订阅激活/更新/取消/支付完成/支付失败）、付费应用守卫中间件（实时检查订阅状态+7天试用期）、成员上限中间件（Free=3/Pro=员工数/Enterprise=无限）、前端 Billing 页面（套餐卡片+人数输入+实时计价+支付记录表）、应用市场付费标识、超管 isPaid 编辑、IndustryMultiSelect 多行业选择组件、成员上限接入邀请/注册/接受邀请流程
 - 2026-05-19: **Bug 修复与 UI 优化** — 超管登录无应用管理菜单/成员页无限加载、应用市场未反映管理后台编辑、Sidebar 图标替换为 lucide-react、收起状态悬浮气泡提示、hydration 服务端/客户端不匹配、Sidebar 横向滚动条、深色模式左侧白边、收起按钮深浅色主题背景适配、骨架屏加载规范
 - 2026-05-19: **应用模块完整实现** — 市场首页（Banner 轮播/精选/行业过滤/骨架屏）、应用详情页（模块列表）、业务页面动态路由
@@ -113,12 +115,13 @@ You tend to converge toward generic, "on distribution" outputs. In frontend desi
 
 ## 下一步计划
 
-1. 注册 Paddle 账号，配置 Sandbox Products/Prices，填入 seed 数据
-2. 配置 PADDLE_API_KEY / PADDLE_WEBHOOK_SECRET 环境变量
-3. 端到端测试 Paddle Checkout + Webhook 完整流程
-4. 实现 OAuth 第三方登录（Google / GitHub）
-5. 后端 API 集成测试 + 前端 E2E 测试
-6. 绑定自定义域名
+1. 端到端测试阅读器全流程（浏览→阅读→翻译→收藏→进度）
+2. 爬虫稳定性测试（长时间运行、断点续爬验证）
+3. 注册 Paddle 账号，配置 Sandbox Products/Prices，填入 seed 数据
+4. 端到端测试 Paddle Checkout + Webhook 完整流程
+5. 实现 OAuth 第三方登录（Google / GitHub）
+6. 后端 API 集成测试 + 前端 E2E 测试
+7. 绑定自定义域名
 
 ## 关键决策记录
 
@@ -144,6 +147,10 @@ You tend to converge toward generic, "on distribution" outputs. In frontend desi
 | 2026-05-20 | 付费访问用中间件实时检查而非缓存 | 订阅状态变动（Webhook 更新 DB）需立即对所有用户生效，paidAppGuard 每次请求查 DB |
 | 2026-05-20 | 套餐不限制应用数量，仅限制成员数 | 所有套餐可访问全部符合规则的应用，差异在 AI 用量（后续迭代）；成员上限 Free=3 / Pro=员工数 / Enterprise=不限 |
 | 2026-05-20 | 应用支持多行业归属 | 每个应用可关联多个行业（IndustryMultiSelect 组件），企业命中任意一个即可访问 |
+| 2026-05-21 | 阅读器前端拆分为 page.tsx + hook + 5 个功能组件 | 637 行单文件难以维护，拆分为职责单一的组件通过 props 通信 |
+| 2026-05-21 | 翻译用批量 API + 顺序执行 + 200ms 间隔 | 防止 API 限流，前端按段落分割确保每条 ≤3000 字符 |
+| 2026-05-21 | 爬虫用 Puppeteer + 单例调度器 + INCOMPLETE 续爬 | Puppeteer 可绕过反爬；单例管理浏览器实例避免资源浪费；断点续爬通过 status 字段实现 |
+| 2026-05-21 | resumeNovel 改为 INCOMPLETE 而非 RUNNING | 爬虫只在启动时查询 INCOMPLETE 小说进行恢复，设为 RUNNING 永远不会被拾取 |
 
 ## 项目文档索引
 
@@ -155,6 +162,10 @@ You tend to converge toward generic, "on distribution" outputs. In frontend desi
 - `/docs/订阅付款/` — 订阅计划/支付收款文档
 - `/docs/前端框架/` — UI框架/响应式/主题/多语言文档
 - `/docs/部署运维/` — 前后端部署/CI/CD文档
+- `/docs/阅读器/` — 小说阅读器业务逻辑/技术方案/数据模型
+- `/docs/应用/` — 应用市场/应用管理文档
+- `/docs/应用模块/` — 应用模块架构文档
+- `/docs/组织与行业/` — 组织管理/行业分类文档
 
 ## Roadmap
 

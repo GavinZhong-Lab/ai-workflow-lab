@@ -21,6 +21,7 @@ export function useReaderData() {
   const [selectedNovel, setSelectedNovel] = useState<NovelDetail | null>(null);
   const [selectedChapter, setSelectedChapter] = useState<ChapterDetail | null>(null);
   const [chapterLoading, setChapterLoading] = useState(false);
+  const [chapterError, setChapterError] = useState<string | null>(null);
 
   // --- Browse state ---
   const [novels, setNovels] = useState<NovelItem[]>([]);
@@ -28,6 +29,7 @@ export function useReaderData() {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [category, setCategory] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -103,13 +105,19 @@ export function useReaderData() {
     } catch { /* non-critical */ }
   }, []);
 
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(timer);
+  }, [search]);
+
   // Initial data load
   useEffect(() => {
-    fetchNovels(page, search, category);
+    fetchNovels(page, debouncedSearch, category);
     fetchBanners();
     fetchFavorites();
     fetchProgress();
-  }, [page, search, category]);
+  }, [page, debouncedSearch, category]);
 
   // ============ Actions ============
 
@@ -130,6 +138,7 @@ export function useReaderData() {
 
   const openChapter = useCallback(async (novelId: string, chapterId: string) => {
     setChapterLoading(true);
+    setChapterError(null);
     try {
       // Fetch novel detail if not already loaded
       if (!selectedNovel || selectedNovel.id !== novelId) {
@@ -152,7 +161,7 @@ export function useReaderData() {
         }
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load');
+      setChapterError(err instanceof Error ? err.message : 'Failed to load chapter');
     } finally {
       setChapterLoading(false);
     }
@@ -314,7 +323,7 @@ export function useReaderData() {
 
   return {
     // View
-    view, setView, selectedNovel, selectedChapter, chapterLoading,
+    view, setView, selectedNovel, selectedChapter, chapterLoading, chapterError,
     // Browse
     novels, banners, total, page, setPage, search, setSearch,
     category, setCategory, loading, error,

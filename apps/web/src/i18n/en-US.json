@@ -197,7 +197,8 @@
       "chapterDirectory": "Chapters",
       "languageChinese": "CN",
       "languageEnglish": "EN",
-      "translateFull": "Translate All"
+      "translateFull": "Translate All",
+      "retry": "Retry"
     },
     "chapterDir": {
       "title": "Chapters",
@@ -266,11 +267,14 @@
       "scraper": {
         "running": "Scraper Running",
         "idle": "Scraper Idle",
-        "start": "Start Scraper (1h)",
+        "start": "Start Scraper",
         "stop": "Stop Scraper",
         "refresh": "Refresh",
         "resume": "Resume",
         "abandon": "Abandon",
+        "siteQidian": "Qidian",
+        "siteZongheng": "Zongheng",
+        "hours": "hrs",
         "stats": {
           "site": "Site",
           "novels": "Novels",

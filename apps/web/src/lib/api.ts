@@ -59,7 +59,7 @@ async function refreshAccessToken(): Promise<string> {
 
   // 保留现有 user/orgId 只更新 tokens
   const currentState = store.getState?.() || {};
-  store.setAuth?.(json.data.accessToken, json.data.refreshToken, currentState as unknown as never);
+  store.setAuth?.(json.data.accessToken, json.data.refreshToken, currentState.user, currentState.orgId);
 
   return json.data.accessToken;
 }

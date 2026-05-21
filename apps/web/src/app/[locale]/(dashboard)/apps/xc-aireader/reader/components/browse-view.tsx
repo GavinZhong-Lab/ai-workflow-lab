@@ -1,7 +1,8 @@
 'use client';
 
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Search, BookOpen, Heart, ChevronLeft, ChevronRight, Star, ListFilter } from 'lucide-react';
 import { useTranslations } from '@/hooks/use-translations';
 import { cn } from '@/lib/cn';
@@ -37,6 +38,103 @@ interface Props {
 
 function Skelly({ className }: { className?: string }) {
   return <div className={cn('animate-pulse rounded-lg bg-[rgb(var(--color-border))/60]', className)} />;
+}
+
+function BannerCarousel({ banners, onBannerClick }: { banners: Banner[]; onBannerClick: (novelId: string) => void }) {
+  const [current, setCurrent] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+
+  const next = useCallback(() => setCurrent((c) => (c + 1) % banners.length), [banners.length]);
+  const prev = useCallback(() => setCurrent((c) => (c - 1 + banners.length) % banners.length), [banners.length]);
+
+  // Auto-rotation
+  useEffect(() => {
+    if (banners.length <= 1 || isPaused) return;
+    const timer = setInterval(next, 5000);
+    return () => clearInterval(timer);
+  }, [banners.length, isPaused, next]);
+
+  if (banners.length === 0) return null;
+
+  const banner = banners[current];
+
+  return (
+    <div
+      className="relative overflow-hidden rounded-xl h-48 group"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+    >
+      {/* Background image or gradient */}
+      {banner.imageUrl ? (
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url(${banner.imageUrl})` }}
+        />
+      ) : (
+        <div className="absolute inset-0 bg-gradient-to-r from-amber-500/20 via-purple-500/20 to-cyan-500/20" />
+      )}
+
+      {/* Overlay gradient for text readability */}
+      <div className="absolute inset-0 bg-gradient-to-t from-[rgb(var(--color-bg))/80] via-transparent to-transparent" />
+
+      {/* Content */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={banner.id}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.3 }}
+          className="absolute bottom-0 left-0 right-0 p-5"
+        >
+          <button
+            onClick={() => banner.linkNovelId && onBannerClick(banner.linkNovelId)}
+            className="text-left w-full"
+          >
+            <p className="font-display text-lg text-[rgb(var(--color-text))] drop-shadow-sm">
+              {banner.title}
+            </p>
+          </button>
+        </motion.div>
+      </AnimatePresence>
+
+      {/* Nav arrows (visible on hover) */}
+      {banners.length > 1 && (
+        <>
+          <button
+            onClick={(e) => { e.stopPropagation(); prev(); }}
+            className="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-black/40 text-white/80 opacity-0 group-hover:opacity-100 hover:bg-black/60 hover:text-white transition-all"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); next(); }}
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-black/40 text-white/80 opacity-0 group-hover:opacity-100 hover:bg-black/60 hover:text-white transition-all"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </>
+      )}
+
+      {/* Dots */}
+      {banners.length > 1 && (
+        <div className="absolute bottom-2 right-4 flex gap-1.5">
+          {banners.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setCurrent(i)}
+              className={cn(
+                'w-2 h-2 rounded-full transition-all',
+                i === current
+                  ? 'bg-amber-500 w-5'
+                  : 'bg-white/40 hover:bg-white/60'
+              )}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function BrowseView({
@@ -76,28 +174,8 @@ export function BrowseView({
         {t('browse.backToMarketplace')}
       </button>
 
-      {/* Banner */}
-      {banners.length > 0 ? (
-        <div className="relative overflow-hidden rounded-xl h-48 bg-gradient-to-r from-amber-500/20 via-purple-500/20 to-cyan-500/20">
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center">
-              <BookOpen className="w-8 h-8 text-amber-500 mx-auto mb-2" />
-              <p className="font-display text-lg text-[rgb(var(--color-text))]">XC-AiReader</p>
-              <p className="text-sm text-[rgb(var(--color-text-muted))]">AI-powered reading with instant translation</p>
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div className="relative overflow-hidden rounded-xl h-48 bg-gradient-to-r from-amber-500/20 via-purple-500/20 to-cyan-500/20">
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center">
-              <BookOpen className="w-10 h-10 text-amber-500 mx-auto mb-3" />
-              <p className="font-display text-2xl text-[rgb(var(--color-text))]">XC-AiReader</p>
-              <p className="text-sm text-[rgb(var(--color-text-muted))] mt-1">AI-powered reading with instant translation</p>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Banner Carousel */}
+      <BannerCarousel banners={banners} onBannerClick={openNovel} />
 
       {/* Continue Reading */}
       <ContinueReading
@@ -160,6 +238,7 @@ export function BrowseView({
         >
           <ListFilter className="w-3.5 h-3.5" />
           {t('browse.myFavorites')}
+          <span className="text-[10px] opacity-70">({favoriteNovels.length})</span>
         </button>
       </div>
 

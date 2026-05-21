@@ -66,6 +66,7 @@ export default function ReaderModulePage() {
         novel={data.selectedNovel}
         chapter={data.selectedChapter}
         chapterLoading={data.chapterLoading}
+        chapterError={data.chapterError}
         readerLang={data.readerLang}
         translating={data.translating}
         displayContent={data.displayContent}

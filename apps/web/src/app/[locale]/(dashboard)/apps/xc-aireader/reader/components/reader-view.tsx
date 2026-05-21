@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, ChevronLeft, ChevronRight, Globe, List, Loader2 } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Globe, List, Loader2, AlertTriangle, RefreshCw } from 'lucide-react';
 import { useTranslations } from '@/hooks/use-translations';
 import { cn } from '@/lib/cn';
 import { ChapterDirectory } from './chapter-directory';
@@ -12,6 +12,7 @@ interface Props {
   novel: NovelDetail;
   chapter: ChapterDetail;
   chapterLoading: boolean;
+  chapterError: string | null;
   readerLang: string;
   translating: boolean;
   displayContent: string;
@@ -29,7 +30,7 @@ function Skelly({ className }: { className?: string }) {
 }
 
 export function ReaderView({
-  novel, chapter, chapterLoading,
+  novel, chapter, chapterLoading, chapterError,
   readerLang, translating, displayContent,
   saveProgress, prevChapter, nextChapter, switchReaderLang,
   goBack, openChapter, LANGUAGES,
@@ -152,6 +153,18 @@ export function ReaderView({
               {Array.from({ length: 12 }).map((_, i) => (
                 <Skelly key={i} className={cn('h-4', i % 4 === 0 ? 'w-3/4' : 'w-full')} />
               ))}
+            </div>
+          ) : chapterError ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-4">
+              <AlertTriangle className="w-10 h-10 text-red-400" />
+              <p className="text-sm text-[rgb(var(--color-text-muted))]">{chapterError}</p>
+              <button
+                onClick={() => openChapter(novel.id, chapter.id)}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-amber-500 text-ink-900 text-sm font-medium hover:bg-amber-400 transition-colors"
+              >
+                <RefreshCw className="w-4 h-4" />
+                {t('reader.retry')}
+              </button>
             </div>
           ) : (
             <motion.div

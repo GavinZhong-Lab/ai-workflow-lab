@@ -430,10 +430,7 @@ export class ReaderAdminService {
   async listIncompleteNovels() {
     const list = await prisma.scraperNovelProgress.findMany({
       where: {
-        OR: [
-          { status: 'INCOMPLETE' },
-          { status: 'FAILED' },
-        ],
+        status: 'INCOMPLETE',
       },
       orderBy: { updatedAt: 'desc' },
     });

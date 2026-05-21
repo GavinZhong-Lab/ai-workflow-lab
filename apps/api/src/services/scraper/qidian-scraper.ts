@@ -83,7 +83,7 @@ export class QidianScraper {
   /**
    * 获取小说详情信息（封面、简介、分类）
    */
-  async fetchNovelInfo(page: Page, novelUrl: string): Promise<{ title?: string; author?: string; description?: string; category?: string }> {
+  async fetchNovelInfo(page: Page, novelUrl: string): Promise<{ title?: string; author?: string; description?: string; category?: string; isCompleted?: boolean; isFree?: boolean }> {
     console.log(`[Qidian] Fetching novel info: ${novelUrl}`);
     try {
       await page.goto(novelUrl, { waitUntil: 'domcontentloaded', timeout: 20000 });
@@ -95,14 +95,12 @@ export class QidianScraper {
         // Author: search broadly for "作者" pattern
         let author = '';
         const candidates: string[] = [];
-        // Collect all text snippets that mention 作者
         document.querySelectorAll('a, span, em, i').forEach((el) => {
           const text = el.textContent?.trim() || '';
           if ((text.startsWith('作者') || text.includes('作者：') || text.includes('作者:')) && text.length < 80) {
             candidates.push(text);
           }
         });
-        // Pick the best match — prefer shorter strings with 作者 prefix
         candidates.sort((a, b) => a.length - b.length);
         for (const t of candidates) {
           const cleaned = t.replace(/^作者[：:]\s*/, '').trim();
@@ -111,13 +109,12 @@ export class QidianScraper {
             break;
           }
         }
-        // Fallback: try .writer class or [data-author]
         if (!author) {
           const writerEl = document.querySelector('.writer, [data-author]');
           if (writerEl) author = writerEl.textContent?.trim()?.replace(/作者[：:]\s*/, '') || '';
         }
 
-        // Description: get innerHTML to preserve line breaks
+        // Description
         const descEl = document.querySelector('#book-intro-detail, .book-intro, .intro, .book-desc, .desc, .description, [class*="intro"], [class*="desc"]');
         let description = '';
         if (descEl && descEl.textContent && descEl.textContent.trim().length > 0) {
@@ -137,7 +134,12 @@ export class QidianScraper {
 
         const category = document.querySelector('.book-category a, .book-category span, .tag, .label, [class*="category"] a, [class*="tag"] a')?.textContent?.trim() || '';
 
-        return { title, author, description, category };
+        // Check completion + free status
+        const bodyText = document.body.innerText || document.body.textContent || '';
+        const isCompleted = bodyText.includes('完本') || bodyText.includes('已完结') || bodyText.includes('完结');
+        const isFree = !bodyText.includes('VIP专享') && !bodyText.includes('付费阅读');
+
+        return { title, author, description, category, isCompleted, isFree };
       });
     } catch (err) {
       console.warn(`[Qidian] Failed to get novel info: ${(err as Error).message}`);
@@ -266,6 +268,13 @@ export class QidianScraper {
       await new Promise((r) => setTimeout(r, 1500));
 
       const html = await page.evaluate(() => {
+        // Check for VIP/paywall first
+        const bodyText = document.body.textContent || document.body.innerText || '';
+        if (bodyText.includes('VIP章节') || bodyText.includes('付费章节') ||
+            bodyText.includes('本章为付费') || bodyText.includes('以下为VIP')) {
+          return '__VIP__';
+        }
+
         const selectors = [
           '.read-content', '.chapter-content', '.content', '#chapter-content',
           '.book-content', '.article-content', '.text', '#content',
@@ -282,6 +291,11 @@ export class QidianScraper {
 
         return document.body.innerHTML;
       });
+
+      if (html === '__VIP__') {
+        console.warn('[Qidian] VIP chapter detected, skipping');
+        return '__VIP__';
+      }
 
       // Convert HTML to paragraph-preserving plain text
       return html

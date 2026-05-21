@@ -2,11 +2,15 @@
  * ScraperManager — 爬虫引擎单例调度器
  * 管理 Puppeteer 浏览器实例、启动/停止、定时器、状态同步
  */
-import puppeteer, { Browser, Page } from 'puppeteer';
+import puppeteer from 'puppeteer-extra';
+import StealthPlugin from 'puppeteer-extra-plugin-stealth';
+import type { Browser, Page } from 'puppeteer';
 import type { ScraperLog, ScraperNovelProgress } from '@prisma/client';
 import { prisma } from '../../lib/prisma.js';
 import { QidianScraper } from './qidian-scraper.js';
 import { ZonghengScraper } from './zongheng-scraper.js';
+
+puppeteer.use(StealthPlugin());
 
 // ============ Types ============
 
@@ -282,7 +286,19 @@ class ScraperManager {
 
       if (!novel) {
         // Try get novel info from the detail page
-        const novelInfo = await scraper.fetchNovelInfo(page, novelUrl).catch(() => ({})) as { title?: string; author?: string; description?: string; category?: string };
+        const novelInfo = await scraper.fetchNovelInfo(page, novelUrl).catch(() => ({})) as { title?: string; author?: string; description?: string; category?: string; isCompleted?: boolean; isFree?: boolean };
+
+        // Skip non-free or non-completed novels
+        if (novelInfo.isCompleted === false || novelInfo.isFree === false) {
+          const reason = novelInfo.isCompleted === false ? 'Not completed' : 'VIP/paid novel';
+          console.warn(`[Scraper] Skipping novel "${progress.novelTitle}": ${reason}`);
+          await prisma.scraperNovelProgress.update({
+            where: { id: progress.id },
+            data: { status: 'FAILED', errorMessage: `Skipped: ${reason}` },
+          });
+          return;
+        }
+
         novel = await prisma.novel.create({
           data: {
             title: novelInfo.title || progress.novelTitle,
@@ -331,6 +347,22 @@ class ScraperManager {
 
           if (!existingChapter) {
             const content = await scraper.fetchChapterContent(page, ch.url);
+
+            // Stop at VIP-locked chapters — remaining are also VIP
+            if (content === '__VIP__') {
+              await prisma.scraperNovelProgress.update({
+                where: { id: progress.id },
+                data: {
+                  status: 'INCOMPLETE',
+                  lastChapterIndex: i,
+                  fetchedChapters: i,
+                  errorMessage: 'Hit VIP paywall',
+                },
+              });
+              this.state.stats.novelsIncomplete++;
+              console.log(`[Scraper] VIP paywall at chapter ${i + 1}, stopping: ${progress.novelTitle}`);
+              return;
+            }
 
             await prisma.chapter.create({
               data: {

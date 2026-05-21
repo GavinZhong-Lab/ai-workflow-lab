@@ -197,7 +197,8 @@
       "chapterDirectory": "目录",
       "languageChinese": "中",
       "languageEnglish": "EN",
-      "translateFull": "翻译全文"
+      "translateFull": "翻译全文",
+      "retry": "重试"
     },
     "chapterDir": {
       "title": "章节目录",
@@ -266,11 +267,14 @@
       "scraper": {
         "running": "爬虫运行中",
         "idle": "爬虫空闲",
-        "start": "启动爬虫 (1小时)",
+        "start": "启动爬虫",
         "stop": "停止爬虫",
         "refresh": "刷新",
         "resume": "续爬",
         "abandon": "放弃",
+        "siteQidian": "起点中文网",
+        "siteZongheng": "纵横中文网",
+        "hours": "小时",
         "stats": {
           "site": "站点",
           "novels": "小说",

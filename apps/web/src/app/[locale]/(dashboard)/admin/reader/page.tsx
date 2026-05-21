@@ -115,6 +115,11 @@ export default function AdminReaderPage() {
   // Form
   const [form, setForm] = useState<Record<string, string | number | boolean>>({});
 
+  // Scraper start config
+  const [scraperSite, setScraperSite] = useState('qidian');
+  const [scraperDuration, setScraperDuration] = useState(1);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
   const TAB_ITEMS: { key: Tab; label: string }[] = [
     { key: 'novels', label: t('admin.tabs.novels') },
     { key: 'banners', label: t('admin.tabs.banners') },
@@ -165,6 +170,13 @@ export default function AdminReaderPage() {
       fetchNovels(), fetchBanners(), fetchTranslators(), fetchScraper(),
     ]).finally(() => setLoading(false));
   }, [fetchNovels, fetchBanners, fetchTranslators, fetchScraper]);
+
+  // Auto-dismiss toast
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(null), 3000);
+    return () => clearTimeout(timer);
+  }, [toast]);
 
   // Auto-poll scraper status when running
   useEffect(() => {
@@ -228,14 +240,25 @@ export default function AdminReaderPage() {
     } catch (err) { setError(err instanceof Error ? err.message : 'Delete failed'); }
   };
 
-  const scraperAction = async (action: string, id?: string) => {
+  const scraperAction = async (action: string, id?: string, siteName?: string) => {
     try {
-      if (action === 'start') await api.post('/api/v1/admin/reader/scraper/start', { durationHours: 1 });
-      else if (action === 'stop') await api.post('/api/v1/admin/reader/scraper/stop');
-      else if (action === 'resume') await api.post(`/api/v1/admin/reader/scraper/incomplete/${id}/resume`);
-      else if (action === 'abandon') await api.post(`/api/v1/admin/reader/scraper/incomplete/${id}/abandon`);
+      let res: { message?: string } | null = null;
+      if (action === 'start') res = await api.post('/api/v1/admin/reader/scraper/start', { siteName: scraperSite, durationHours: scraperDuration });
+      else if (action === 'stop') res = await api.post('/api/v1/admin/reader/scraper/stop');
+      else if (action === 'resume') {
+        if (siteName) setScraperSite(siteName);
+        res = await api.post(`/api/v1/admin/reader/scraper/incomplete/${id}/resume`);
+      }
+      else if (action === 'abandon') {
+        res = await api.post(`/api/v1/admin/reader/scraper/incomplete/${id}/abandon`);
+        // Immediately remove from UI
+        if (id) setIncompleteNovels(prev => prev.filter(n => n.id !== id));
+      }
+      setToast({ message: res?.message || 'OK', type: 'success' });
       await fetchScraper();
-    } catch (err) { setError(err instanceof Error ? err.message : 'Failed'); }
+    } catch (err) {
+      setToast({ message: err instanceof Error ? err.message : 'Failed', type: 'error' });
+    }
   };
 
   // ============ Form Fields ============
@@ -291,6 +314,23 @@ export default function AdminReaderPage() {
           <button onClick={() => setError(null)} className="text-red-400 hover:text-red-300"><X className="w-4 h-4" /></button>
         </div>
       )}
+
+      {/* Toast */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: -12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            className={cn(
+              'p-3 rounded-lg border text-sm',
+              toast.type === 'success' ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-red-500/10 border-red-500/20 text-red-400'
+            )}
+          >
+            {toast.message}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Tabs */}
       <div className="flex gap-1.5 p-1 rounded-xl bg-[rgb(var(--color-surface))] border border-[rgb(var(--color-border))] w-fit">
@@ -444,11 +484,36 @@ export default function AdminReaderPage() {
                   </span>
                 )}
               </div>
-              <div className="flex gap-3">
+              <div className="flex items-center gap-3">
                 {!scraperStatus?.isRunning ? (
-                  <button onClick={() => scraperAction('start')} className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-green-500 text-white text-sm font-medium hover:bg-green-400 transition-colors">
-                    <Play className="w-4 h-4" /> {t('admin.scraper.start')}
-                  </button>
+                  <>
+                    {/* Site selector */}
+                    <select
+                      value={scraperSite}
+                      onChange={(e) => setScraperSite(e.target.value)}
+                      className="px-3 py-2 rounded-lg bg-[rgb(var(--color-bg))] border border-[rgb(var(--color-border))] text-sm text-[rgb(var(--color-text))] focus:outline-none focus:border-amber-500/50"
+                    >
+                      <option value="qidian">{t('admin.scraper.siteQidian')}</option>
+                      <option value="zongheng">{t('admin.scraper.siteZongheng')}</option>
+                    </select>
+
+                    {/* Duration hours */}
+                    <div className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[rgb(var(--color-bg))] border border-[rgb(var(--color-border))]">
+                      <input
+                        type="number"
+                        min={1}
+                        max={24}
+                        value={scraperDuration}
+                        onChange={(e) => setScraperDuration(Math.max(1, parseInt(e.target.value) || 1))}
+                        className="w-14 bg-transparent text-sm text-[rgb(var(--color-text))] focus:outline-none text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      />
+                      <span className="text-xs text-[rgb(var(--color-text-muted))]">{t('admin.scraper.hours')}</span>
+                    </div>
+
+                    <button onClick={() => scraperAction('start')} className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-green-500 text-white text-sm font-medium hover:bg-green-400 transition-colors shrink-0">
+                      <Play className="w-4 h-4" /> {t('admin.scraper.start')}
+                    </button>
+                  </>
                 ) : (
                   <button onClick={() => scraperAction('stop')} className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-red-500 text-white text-sm font-medium hover:bg-red-400 transition-colors">
                     <Square className="w-4 h-4" /> {t('admin.scraper.stop')}
@@ -557,7 +622,7 @@ export default function AdminReaderPage() {
                       <p className="text-xs text-[rgb(var(--color-text-muted))]">{n.siteName} · {n.fetchedChapters}/{n.totalChapters} {t('admin.scraper.chaptersCount')} · {t('admin.scraper.lastChapter')}: {new Date(n.updatedAt).toLocaleDateString()}</p>
                     </div>
                     <span className={cn('text-xs px-2 py-0.5 rounded-full', n.status === 'FAILED' ? 'bg-red-500/10 text-red-400' : 'bg-amber-500/10 text-amber-400')}>{n.status}</span>
-                    <button onClick={() => scraperAction('resume', n.id)} className="px-3 py-1.5 rounded-lg bg-amber-500 text-ink-900 text-xs font-medium hover:bg-amber-400 transition-colors">{t('admin.scraper.resume')}</button>
+                    <button onClick={() => scraperAction('resume', n.id, n.siteName)} className="px-3 py-1.5 rounded-lg bg-amber-500 text-ink-900 text-xs font-medium hover:bg-amber-400 transition-colors">{t('admin.scraper.resume')}</button>
                     <button onClick={() => scraperAction('abandon', n.id)} className="px-3 py-1.5 rounded-lg bg-[rgb(var(--color-bg))] border border-[rgb(var(--color-border))] text-xs text-[rgb(var(--color-text-muted))] hover:text-red-400 transition-colors">{t('admin.scraper.abandon')}</button>
                   </div>
                 ))}

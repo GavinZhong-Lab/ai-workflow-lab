@@ -2,10 +2,14 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, ChevronLeft, ChevronRight, Globe, List, Loader2, AlertTriangle, RefreshCw } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, List, Loader2, AlertTriangle, RefreshCw } from 'lucide-react';
 import { useTranslations } from '@/hooks/use-translations';
+import { useTranslationStore } from '@/stores/translation';
+import { api } from '@/lib/api';
 import { cn } from '@/lib/cn';
 import { ChapterDirectory } from './chapter-directory';
+import { LanguageSelector } from './language-selector';
+import { useTranslatedText } from '../hooks/use-translated-texts';
 import type { NovelDetail, ChapterDetail } from './types';
 
 interface Props {
@@ -13,33 +17,134 @@ interface Props {
   chapter: ChapterDetail;
   chapterLoading: boolean;
   chapterError: string | null;
-  readerLang: string;
-  translating: boolean;
-  displayContent: string;
   saveProgress: (novelId: string, chapterId: string, percentage: number) => void;
   prevChapter: () => void;
   nextChapter: () => void;
-  switchReaderLang: (lang: string) => void;
   goBack: () => void;
   openChapter: (novelId: string, chapterId: string) => void;
-  LANGUAGES: { code: string; label: string }[];
 }
 
 function Skelly({ className }: { className?: string }) {
   return <div className={cn('animate-pulse rounded-lg bg-[rgb(var(--color-border))/60]', className)} />;
 }
 
+function ReaderNovelTitle({ title }: { title: string }) {
+  return <>{useTranslatedText(title)}</>;
+}
+function ReaderChTitle({ title }: { title: string }) {
+  return <>{useTranslatedText(title)}</>;
+}
+
+/** Split chapter content into paragraph batches and translate via API */
+async function translateChapterContent(
+  content: string,
+  targetLang: string,
+  signal: { aborted: boolean },
+): Promise<string> {
+  const paragraphs = content.split(/\n\s*\n/).filter((p) => p.trim().length > 0);
+
+  const MAX_TEXTS = 20;
+  const MAX_CHARS = 2500;
+  const batches: string[][] = [];
+  let cur: string[] = [];
+  let len = 0;
+
+  for (const p of paragraphs) {
+    if ((len + p.length > MAX_CHARS || cur.length >= MAX_TEXTS) && cur.length > 0) {
+      batches.push(cur);
+      cur = [];
+      len = 0;
+    }
+    cur.push(p);
+    len += p.length;
+  }
+  if (cur.length > 0) batches.push(cur);
+
+  const results: string[] = [];
+  for (const batch of batches) {
+    if (signal.aborted) break;
+    const res = await api.post<{ code: number; data: { translatedTexts: string[] } }>(
+      '/api/v1/reader/translate/batch',
+      { texts: batch, targetLang },
+    );
+    results.push(...res.data.translatedTexts);
+    if (batches.length > 1) await new Promise((r) => setTimeout(r, 200));
+  }
+
+  return results.join('\n\n');
+}
+
 export function ReaderView({
   novel, chapter, chapterLoading, chapterError,
-  readerLang, translating, displayContent,
-  saveProgress, prevChapter, nextChapter, switchReaderLang,
-  goBack, openChapter, LANGUAGES,
+  saveProgress, prevChapter, nextChapter,
+  goBack, openChapter,
 }: Props) {
   const t = useTranslations('reader');
   const [dirOpen, setDirOpen] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSavedRef = useRef<number>(0);
+
+  // Global translation state
+  const targetLang = useTranslationStore((s) => s.targetLang);
+  const getCached = useTranslationStore((s) => s.getCached);
+  const setCached = useTranslationStore((s) => s.setCached);
+  const [translatingContent, setTranslatingContent] = useState(false);
+  const [contentError, setContentError] = useState<string | null>(null);
+  const abortRef = useRef({ aborted: false });
+
+  // Determine display content
+  const cacheKey = `${chapter.id}:content`;
+  const displayContent = (() => {
+    if (targetLang === 'zh') return chapter.content;
+    const cached = getCached(cacheKey, targetLang);
+    return cached ?? chapter.content;
+  })();
+
+  // Translate chapter content when language or chapter changes
+  useEffect(() => {
+    if (targetLang === 'zh') {
+      setTranslatingContent(false);
+      setContentError(null);
+      return;
+    }
+
+    const cached = getCached(cacheKey, targetLang);
+    if (cached) {
+      setTranslatingContent(false);
+      setContentError(null);
+      return;
+    }
+
+    // Abort any in-progress translation for previous chapter
+    abortRef.current.aborted = true;
+    const signal = { aborted: false };
+    abortRef.current = signal;
+
+    setTranslatingContent(true);
+    setContentError(null);
+
+    translateChapterContent(chapter.content, targetLang, signal)
+      .then((result) => {
+        if (signal.aborted) return;
+        // Detect mock fallback — don't cache it
+        if (result.startsWith('[Mock ')) {
+          setContentError('No translation API configured. Please add a DeepL or Google API key in Admin > Reader > Translators.');
+        } else {
+          setCached(cacheKey, targetLang, result);
+        }
+        setTranslatingContent(false);
+      })
+      .catch((err) => {
+        if (signal.aborted) return;
+        setContentError(err instanceof Error ? err.message : 'Translation failed');
+        setTranslatingContent(false);
+      });
+
+    return () => {
+      signal.aborted = true;
+    };
+  }, [chapter.id, targetLang]);
 
   // Scroll-based progress saving (2s debounce)
   const handleScroll = useCallback(() => {
@@ -101,42 +206,14 @@ export function ReaderView({
             className="flex items-center gap-1.5 text-sm text-[rgb(var(--color-text-muted))] hover:text-amber-500 transition-colors min-w-0"
           >
             <ArrowLeft className="w-4 h-4 shrink-0" />
-            <span className="truncate">{novel.title}</span>
+            <span className="truncate"><ReaderNovelTitle title={novel.title} /></span>
           </button>
 
           <div className="flex items-center gap-3">
             <span className="text-xs text-[rgb(var(--color-text-muted))] font-mono">
               {chapter.chapterIndex} / {novel.chapters.length}
             </span>
-
-            {/* Language selector */}
-            <div className="relative flex items-center">
-              {translating ? (
-                <span className="flex items-center gap-1 px-2 py-1 rounded-lg bg-[rgb(var(--color-surface))] text-xs text-amber-500">
-                  <Loader2 className="w-3 h-3 animate-spin" />
-                  {t('reader.translating')}
-                </span>
-              ) : (
-                <>
-                  <Globe className="absolute left-2 w-3 h-3 text-[rgb(var(--color-text-muted))] pointer-events-none z-10" />
-                  <select
-                    value={readerLang}
-                    onChange={(e) => switchReaderLang(e.target.value)}
-                    className={cn(
-                      'appearance-none pl-7 pr-6 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer',
-                      'bg-[rgb(var(--color-surface))] border-0 focus:outline-none focus:ring-1 focus:ring-amber-500/30',
-                      readerLang !== 'zh'
-                        ? 'text-amber-500 bg-amber-500/10'
-                        : 'text-[rgb(var(--color-text-muted))]'
-                    )}
-                  >
-                    {LANGUAGES.map((l) => (
-                      <option key={l.code} value={l.code}>{l.label}</option>
-                    ))}
-                  </select>
-                </>
-              )}
-            </div>
+            <LanguageSelector variant="minimal" />
           </div>
         </div>
       </div>
@@ -175,11 +252,19 @@ export function ReaderView({
             >
               {/* Title */}
               <div className="text-center py-4">
-                <h1 className="font-display text-xl text-[rgb(var(--color-text))]">{chapter.title}</h1>
+                <h1 className="font-display text-xl text-[rgb(var(--color-text))]"><ReaderChTitle title={chapter.title} /></h1>
                 <p className="text-xs text-[rgb(var(--color-text-muted))] mt-1">
-                  {chapter.novel.title} · {chapter.wordCount.toLocaleString()} words
+                  <ReaderNovelTitle title={chapter.novel.title} /> · {chapter.wordCount.toLocaleString()} words
                 </p>
               </div>
+
+              {/* Translation Error Banner */}
+              {contentError && (
+                <div className="flex items-start gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-sm text-red-400">
+                  <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <span>{contentError}</span>
+                </div>
+              )}
 
               {/* Content */}
               <div className={cn(
@@ -190,7 +275,7 @@ export function ReaderView({
               </div>
 
               {/* Translating overlay */}
-              {translating && (
+              {translatingContent && (
                 <div className="flex items-center justify-center gap-2 py-4 text-sm text-amber-500">
                   <Loader2 className="w-4 h-4 animate-spin" />
                   {t('reader.translating')}

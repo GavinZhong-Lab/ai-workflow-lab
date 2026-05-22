@@ -1,19 +1,10 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { api } from '@/lib/api';
 import type { NovelItem, NovelDetail, ChapterDetail, Banner, ProgressEntry, ViewState } from '../components/types';
 
 const CATEGORIES = ['全部', '玄幻', '仙侠', '都市', '历史', '科幻', '游戏', '悬疑', '轻小说', '短篇'];
-
-const LANGUAGES = [
-  { code: 'zh', label: '中文' },
-  { code: 'en', label: 'English' },
-  { code: 'ja', label: '日本語' },
-  { code: 'ru', label: 'Русский' },
-  { code: 'fr', label: 'Français' },
-  { code: 'es', label: 'Español' },
-];
 
 export function useReaderData() {
   // --- View state ---
@@ -42,13 +33,6 @@ export function useReaderData() {
 
   // --- Progress ---
   const [progressMap, setProgressMap] = useState<Record<string, ProgressEntry>>({});
-
-  // --- Translation ---
-  const [readerLang, setReaderLang] = useState<'zh' | string>('zh');
-  const [translatedContent, setTranslatedContent] = useState<string | null>(null);
-  const [translating, setTranslating] = useState(false);
-  const translateCacheRef = useRef<Map<string, string>>(new Map());
-  const abortTranslateRef = useRef(false);
 
   // ============ Data Fetching ============
 
@@ -150,10 +134,6 @@ export function useReaderData() {
       if (res.data) {
         setSelectedChapter(res.data);
         setView('reader');
-        setReaderLang('zh');
-        setTranslatedContent(null);
-        translateCacheRef.current.delete(chapterId);
-        abortTranslateRef.current = false;
 
         // Save initial progress only if no existing record for this novel
         if (!progressMap[novelId]) {
@@ -223,85 +203,6 @@ export function useReaderData() {
     return () => window.removeEventListener('keydown', handler);
   }, [view, prevChapter, nextChapter]);
 
-  // ============ Translation ============
-
-  const translateContent = useCallback(async (content: string, targetLang: string) => {
-    const chapterId = selectedChapter?.id;
-    if (!chapterId) return;
-
-    // Check cache
-    const cached = translateCacheRef.current.get(chapterId);
-    if (cached) {
-      setTranslatedContent(cached);
-      setReaderLang(targetLang);
-      return;
-    }
-
-    setTranslating(true);
-    abortTranslateRef.current = false;
-
-    try {
-      // Split by paragraphs
-      const paragraphs = content.split(/\n\s*\n/).filter((p) => p.trim().length > 0);
-
-      // Group into batches of ~2500 chars
-      const batches: string[][] = [];
-      let currentBatch: string[] = [];
-      let currentLen = 0;
-
-      for (const p of paragraphs) {
-        if (currentLen + p.length > 2500 && currentBatch.length > 0) {
-          batches.push(currentBatch);
-          currentBatch = [];
-          currentLen = 0;
-        }
-        currentBatch.push(p);
-        currentLen += p.length;
-      }
-      if (currentBatch.length > 0) batches.push(currentBatch);
-
-      // Translate batches sequentially
-      const translatedParagraphs: string[] = [];
-      for (const batch of batches) {
-        if (abortTranslateRef.current) break;
-
-        const res = await api.post<{ code: number; data: { translatedTexts: string[] } }>(
-          '/api/v1/reader/translate/batch',
-          { texts: batch, targetLang }
-        );
-        translatedParagraphs.push(...res.data.translatedTexts);
-
-        // Small delay between batches
-        if (batches.length > 1) await new Promise((r) => setTimeout(r, 200));
-      }
-
-      if (!abortTranslateRef.current) {
-        const result = translatedParagraphs.join('\n\n');
-        translateCacheRef.current.set(chapterId, result);
-        setTranslatedContent(result);
-        setReaderLang(targetLang);
-      }
-    } catch { /* ignore */ }
-    finally {
-      setTranslating(false);
-    }
-  }, [selectedChapter?.id]);
-
-  const switchReaderLang = useCallback((targetLang: string) => {
-    if (!selectedChapter) return;
-    if (targetLang === 'zh') {
-      setReaderLang('zh');
-      setTranslatedContent(null);
-    } else {
-      translateContent(selectedChapter.content, targetLang);
-    }
-  }, [selectedChapter, translateContent]);
-
-  // Cleanup aborted translations
-  useEffect(() => {
-    return () => { abortTranslateRef.current = true; };
-  }, []);
-
   // ============ Helpers ============
 
   const statusLabel = (s: string) => s === 'COMPLETED' ? '已完结' : '连载中';
@@ -316,11 +217,6 @@ export function useReaderData() {
     return cat ? colors[cat] || 'bg-gray-500/10 text-gray-400' : 'bg-gray-500/10 text-gray-400';
   };
 
-  // Display content (original or translated)
-  const displayContent = readerLang === 'zh' || !translatedContent
-    ? selectedChapter?.content || ''
-    : translatedContent;
-
   return {
     // View
     view, setView, selectedNovel, selectedChapter, chapterLoading, chapterError,
@@ -332,12 +228,10 @@ export function useReaderData() {
     favLoading,
     // Progress
     progressMap,
-    // Translation
-    readerLang, translatedContent, translating, displayContent,
     // Actions
     fetchNovels, openNovel, openChapter, prevChapter, nextChapter,
-    toggleFavorite, saveProgress, switchReaderLang, goBack,
+    toggleFavorite, saveProgress, goBack,
     // Helpers
-    statusLabel, categoryColor, CATEGORIES, LANGUAGES,
+    statusLabel, categoryColor, CATEGORIES,
   };
 }

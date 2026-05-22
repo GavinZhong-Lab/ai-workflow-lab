@@ -3,7 +3,9 @@
 import { motion } from 'framer-motion';
 import { ArrowLeft, BookOpen, Heart } from 'lucide-react';
 import { useTranslations } from '@/hooks/use-translations';
+import { useTranslatedText } from '../hooks/use-translated-texts';
 import { cn } from '@/lib/cn';
+import { LanguageSelector } from './language-selector';
 import type { NovelDetail, ProgressEntry } from './types';
 
 interface Props {
@@ -18,6 +20,24 @@ interface Props {
   categoryColor: (cat: string | null) => string;
 }
 
+function DetailTitle({ title }: { title: string }) {
+  return <>{useTranslatedText(title)}</>;
+}
+function DetailAuthor({ author }: { author: string | null }) {
+  const t = useTranslations('reader');
+  const translated = useTranslatedText(author || '');
+  return <>{translated || t('detail.unknownAuthor')}</>;
+}
+function DetailCategory({ cat, className }: { cat: string; className: string }) {
+  return <span className={className}>{useTranslatedText(cat)}</span>;
+}
+function DetailDesc({ text }: { text: string }) {
+  return <>{useTranslatedText(text)}</>;
+}
+function ChapterTitle({ title }: { title: string }) {
+  return <>{useTranslatedText(title)}</>;
+}
+
 export function DetailView({
   novel, favoriteNovelIds, favLoading, progressMap,
   openChapter, toggleFavorite, goBack,
@@ -28,10 +48,13 @@ export function DetailView({
 
   return (
     <div className="space-y-6">
-      {/* Back */}
-      <button onClick={goBack} className="flex items-center gap-1.5 text-sm text-[rgb(var(--color-text-muted))] hover:text-amber-500 transition-colors">
-        <ArrowLeft className="w-4 h-4" /> {t('detail.backToBrowse')}
-      </button>
+      {/* Back + Language */}
+      <div className="flex items-center justify-between">
+        <button onClick={goBack} className="flex items-center gap-1.5 text-sm text-[rgb(var(--color-text-muted))] hover:text-amber-500 transition-colors">
+          <ArrowLeft className="w-4 h-4" /> {t('detail.backToBrowse')}
+        </button>
+        <LanguageSelector variant="minimal" />
+      </div>
 
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
         {/* Header */}
@@ -41,7 +64,9 @@ export function DetailView({
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <h1 className="font-display text-2xl text-[rgb(var(--color-text))]">{novel.title}</h1>
+              <h1 className="font-display text-2xl text-[rgb(var(--color-text))]">
+                <DetailTitle title={novel.title} />
+              </h1>
               <button
                 onClick={() => toggleFavorite(novel.id)}
                 disabled={favLoading === novel.id}
@@ -51,13 +76,11 @@ export function DetailView({
               </button>
             </div>
             <p className="text-sm text-[rgb(var(--color-text-muted))]">
-              {novel.author || t('detail.unknownAuthor')} · {novel.wordCount.toLocaleString()} {t('detail.words')}
+              <DetailAuthor author={novel.author} /> · {novel.wordCount.toLocaleString()} {t('detail.words')}
             </p>
             <div className="flex items-center gap-2 mt-2">
               {novel.category && (
-                <span className={cn('text-xs px-2 py-0.5 rounded-full', categoryColor(novel.category))}>
-                  {t(`category.${novel.category}`)}
-                </span>
+                <DetailCategory cat={novel.category} className={cn('text-xs px-2 py-0.5 rounded-full', categoryColor(novel.category))} />
               )}
               <span className={cn(
                 'text-xs px-2 py-0.5 rounded-full',
@@ -70,7 +93,9 @@ export function DetailView({
               </span>
             </div>
             {novel.description && (
-              <p className="mt-3 text-sm text-[rgb(var(--color-text-muted))] leading-relaxed line-clamp-4">{novel.description}</p>
+              <p className="mt-3 text-sm text-[rgb(var(--color-text-muted))] leading-relaxed line-clamp-4">
+                <DetailDesc text={novel.description} />
+              </p>
             )}
           </div>
         </div>
@@ -118,7 +143,7 @@ export function DetailView({
                       {ch.chapterIndex}
                     </span>
                     <span className="text-sm text-[rgb(var(--color-text))] group-hover:text-amber-500 transition-colors truncate">
-                      {ch.title}
+                      <ChapterTitle title={ch.title} />
                     </span>
                     {progress?.chapterId === ch.id && (
                       <span className="text-[10px] text-amber-500 ml-auto shrink-0">

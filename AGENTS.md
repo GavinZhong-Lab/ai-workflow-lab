@@ -56,10 +56,3 @@ saas-platform/
 | 「继续开发」 | 读取 CLAUDE.md + 进度追踪 + 决策记录 + git log，总结状态 |
 | 「项目状态」 | 显示当前项目进度、最近变更、待办事项 |
 
-## 前端设计原则
-
-- 避免 AI slop 审美 — 不使用 Inter/Roboto/Arial 等通用字体
-- 使用独特配色方案 — 避免紫色渐变配白色背景的陈词滥调
-- 优先使用 CSS 动画 — 入场动画、页面切换使用 Framer Motion
-- 深色/亮色双主题 — 使用 CSS 变量实现主题切换
-- 玻璃态卡片 — 使用 backdrop-filter 营造深度感

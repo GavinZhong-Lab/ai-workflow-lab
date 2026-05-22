@@ -4,7 +4,15 @@ import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { BookOpen } from 'lucide-react';
 import { useTranslations } from '@/hooks/use-translations';
+import { useTranslatedText } from '../hooks/use-translated-texts';
 import type { NovelItem, ProgressEntry } from './types';
+
+function ContinueTitle({ title }: { title: string }) {
+  return <>{useTranslatedText(title)}</>;
+}
+function ContinueChTitle({ title }: { title: string }) {
+  return <>{useTranslatedText(title)}</>;
+}
 
 interface Props {
   novels: NovelItem[];
@@ -52,10 +60,10 @@ export function ContinueReading({ novels, progressMap, onContinue }: Props) {
               </div>
               <div className="min-w-0">
                 <p className="text-sm font-medium text-[rgb(var(--color-text))] group-hover:text-amber-500 transition-colors truncate">
-                  {novel.title}
+                  <ContinueTitle title={novel.title} />
                 </p>
                 <p className="text-[10px] text-[rgb(var(--color-text-muted))] truncate">
-                  {progress.chapterTitle || `Ch.${progress.chapterIndex}`}
+                  {progress.chapterTitle ? <ContinueChTitle title={progress.chapterTitle} /> : `Ch.${progress.chapterIndex}`}
                 </p>
               </div>
             </div>

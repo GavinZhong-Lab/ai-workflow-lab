@@ -67,16 +67,11 @@ export default function ReaderModulePage() {
         chapter={data.selectedChapter}
         chapterLoading={data.chapterLoading}
         chapterError={data.chapterError}
-        readerLang={data.readerLang}
-        translating={data.translating}
-        displayContent={data.displayContent}
         saveProgress={data.saveProgress}
         prevChapter={data.prevChapter}
         nextChapter={data.nextChapter}
-        switchReaderLang={data.switchReaderLang}
         goBack={data.goBack}
         openChapter={data.openChapter}
-        LANGUAGES={data.LANGUAGES}
       />
     );
   }

@@ -180,15 +180,8 @@ export class ReaderService {
   }
 
   async translateBatch(input: TranslateBatchInput) {
-    const translatedTexts: string[] = [];
-    for (let i = 0; i < input.texts.length; i++) {
-      const result = await translationService.translate(input.texts[i], input.targetLang);
-      if (!result) break;
-      translatedTexts.push(result);
-      if (input.texts.length > 1 && i < input.texts.length - 1) {
-        await new Promise((r) => setTimeout(r, 200));
-      }
-    }
+    const results = await translationService.translateBatch(input.texts, input.targetLang);
+    const translatedTexts = results.filter((r): r is string => r !== null);
     return { code: ErrorCode.OK, data: { translatedTexts }, message: 'ok' };
   }
 

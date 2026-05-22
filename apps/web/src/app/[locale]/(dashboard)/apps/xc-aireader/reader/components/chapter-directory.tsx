@@ -4,8 +4,13 @@ import { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { useTranslations } from '@/hooks/use-translations';
+import { useTranslatedText } from '../hooks/use-translated-texts';
 import { cn } from '@/lib/cn';
 import type { ChapterItem } from './types';
+
+function DirChapterTitle({ title }: { title: string }) {
+  return <>{useTranslatedText(title)}</>;
+}
 
 interface Props {
   open: boolean;
@@ -99,7 +104,7 @@ export function ChapterDirectory({ open, onClose, chapters, currentChapterId, on
                       'text-sm truncate flex-1',
                       isCurrent ? 'text-amber-500 font-medium' : 'text-[rgb(var(--color-text))]'
                     )}>
-                      {ch.title}
+                      <DirChapterTitle title={ch.title} />
                     </span>
                     {isCurrent && (
                       <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-500 shrink-0">

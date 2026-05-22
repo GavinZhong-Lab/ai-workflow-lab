@@ -5,8 +5,10 @@ import { useParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Search, BookOpen, Heart, ChevronLeft, ChevronRight, Star, ListFilter } from 'lucide-react';
 import { useTranslations } from '@/hooks/use-translations';
+import { useTranslatedText } from '../hooks/use-translated-texts';
 import { cn } from '@/lib/cn';
 import { ContinueReading } from './continue-reading';
+import { LanguageSelector } from './language-selector';
 import type { NovelItem, Banner, ProgressEntry } from './types';
 
 interface Props {
@@ -38,6 +40,27 @@ interface Props {
 
 function Skelly({ className }: { className?: string }) {
   return <div className={cn('animate-pulse rounded-lg bg-[rgb(var(--color-border))/60]', className)} />;
+}
+
+function BannerTitle({ title }: { title: string }) {
+  const translated = useTranslatedText(title);
+  return <>{translated}</>;
+}
+
+function NovelTitle({ title }: { title: string }) {
+  const translated = useTranslatedText(title);
+  return <>{translated}</>;
+}
+
+function NovelAuthor({ author }: { author: string | null }) {
+  const t = useTranslations('reader');
+  const translated = useTranslatedText(author || '');
+  return <>{translated || t('detail.unknownAuthor')}</>;
+}
+
+function NovelCategory({ cat, className }: { cat: string; className: string }) {
+  const translated = useTranslatedText(cat);
+  return <span className={className}>{translated}</span>;
 }
 
 function BannerCarousel({ banners, onBannerClick }: { banners: Banner[]; onBannerClick: (novelId: string) => void }) {
@@ -92,7 +115,7 @@ function BannerCarousel({ banners, onBannerClick }: { banners: Banner[]; onBanne
             className="text-left w-full"
           >
             <p className="font-display text-lg text-[rgb(var(--color-text))] drop-shadow-sm">
-              {banner.title}
+              <BannerTitle title={banner.title} />
             </p>
           </button>
         </motion.div>
@@ -196,6 +219,7 @@ export function BrowseView({
             className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-[rgb(var(--color-surface))] border border-[rgb(var(--color-border))] text-[rgb(var(--color-text))] placeholder:text-[rgb(var(--color-text-muted))] focus:outline-none focus:border-amber-500/50 transition-colors text-sm"
           />
         </div>
+        <LanguageSelector variant="full" />
         <div className="flex flex-wrap gap-1.5">
           {CATEGORIES.map((cat) => (
             <button
@@ -285,7 +309,7 @@ export function BrowseView({
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <h3 className="font-semibold text-[rgb(var(--color-text))] group-hover:text-amber-500 transition-colors truncate">
-                        {novel.title}
+                        <NovelTitle title={novel.title} />
                       </h3>
                       {novel.isFeatured && <Star className="w-3.5 h-3.5 text-amber-500 shrink-0" />}
                       {progressMap[novel.id] && (
@@ -295,7 +319,7 @@ export function BrowseView({
                       )}
                     </div>
                     <p className="text-xs text-[rgb(var(--color-text-muted))] mt-0.5">
-                      {novel.author || t('detail.unknownAuthor')} · {novel.wordCount.toLocaleString()} {t('detail.words')}
+                      <NovelAuthor author={novel.author} /> · {novel.wordCount.toLocaleString()} {t('detail.words')}
                     </p>
                   </div>
                   <button
@@ -313,9 +337,7 @@ export function BrowseView({
                 </div>
                 <div className="flex items-center gap-2 mt-3">
                   {novel.category && (
-                    <span className={cn('text-[10px] px-2 py-0.5 rounded-full', categoryColor(novel.category))}>
-                      {t(`category.${novel.category}`)}
-                    </span>
+                    <NovelCategory cat={novel.category} className={cn('text-[10px] px-2 py-0.5 rounded-full', categoryColor(novel.category))} />
                   )}
                   <span className={cn(
                     'text-[10px] px-2 py-0.5 rounded-full',

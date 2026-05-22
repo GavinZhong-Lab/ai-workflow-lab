@@ -217,9 +217,15 @@ export default function AdminReaderPage() {
         case 'translator-create':
           await api.post('/api/v1/admin/reader/translators', form);
           break;
-        case 'translator-edit':
-          await api.patch(`/api/v1/admin/reader/translators/${editId}`, form);
+        case 'translator-edit': {
+          // Don't overwrite existing API key if user didn't enter a new one
+          const payload = { ...form };
+          if (!payload.apiKey || payload.apiKey.trim() === '') {
+            delete payload.apiKey;
+          }
+          await api.patch(`/api/v1/admin/reader/translators/${editId}`, payload);
           break;
+        }
       }
       closeModal();
       await Promise.all([fetchNovels(), fetchBanners(), fetchTranslators()]);

@@ -163,23 +163,15 @@ class ScraperManager {
       // 启动浏览器
       this.browser = await puppeteer.launch({
         headless: true,
-        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
         args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-gpu',
+          '--disable-blink-features=AutomationControlled',
+          '--no-first-run',
           '--disable-extensions',
           '--disable-background-networking',
           '--disable-sync',
           '--disable-translate',
           '--disable-default-apps',
-          '--hide-scrollbars',
-          '--mute-audio',
-          '--no-first-run',
           '--disable-component-update',
-          '--disable-blink-features=AutomationControlled',
-          '--js-flags=--max-old-space-size=64',
         ],
       });
 

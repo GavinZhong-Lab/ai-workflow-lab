@@ -372,6 +372,25 @@ export class ReaderAdminService {
       return { code: ErrorCode.OK, data: null, message: 'Scraper is already running' };
     }
 
+    // Pre-flight: check that a browser executable exists
+    const { executablePath } = await import('puppeteer');
+    try {
+      const resolved = executablePath({});
+      if (!resolved) {
+        return {
+          code: ErrorCode.INTERNAL_ERROR,
+          data: null,
+          message: 'Chromium not found. The scraper must run locally with Chromium installed.',
+        };
+      }
+    } catch {
+      return {
+        code: ErrorCode.INTERNAL_ERROR,
+        data: null,
+        message: 'Chromium not found. Run "bash dev-start.sh --prod-db" on your local machine to use the scraper.',
+      };
+    }
+
     const siteName = input.siteName || 'qidian';
     const log = await prisma.scraperLog.create({
       data: {

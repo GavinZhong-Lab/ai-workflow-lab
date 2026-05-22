@@ -23,12 +23,10 @@ RUN pnpm turbo run build --filter=@saas/api
 # Stage 2: Production
 FROM node:22-alpine AS runner
 RUN apk add --no-cache openssl openssl-dev \
-  chromium \
-  nss freetype harfbuzz ca-certificates ttf-freefont \
   && addgroup --system --gid 1001 nodejs \
   && adduser --system --uid 1001 appuser \
   && npm install -g prisma@5 \
-  && mkdir -p /home/appuser/.cache/prisma /home/appuser/.cache/puppeteer \
+  && mkdir -p /home/appuser/.cache/prisma \
   && chown -R appuser:nodejs /usr/local/lib/node_modules/prisma /home/appuser/.cache
 
 WORKDIR /app
@@ -41,8 +39,6 @@ COPY --from=builder --chown=appuser:nodejs /app/packages/shared/package.json ./p
 COPY --from=builder --chown=appuser:nodejs /app/node_modules ./node_modules
 
 USER appuser
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
-ENV PUPPETEER_CACHE_DIR=/home/appuser/.cache/puppeteer
 EXPOSE 4000
 
 CMD ["sh", "-c", "npx prisma db push --skip-generate --accept-data-loss && node dist/index.js"]

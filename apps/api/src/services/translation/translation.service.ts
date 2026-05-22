@@ -7,6 +7,11 @@ import { EnvHttpProxyAgent } from 'undici';
 
 const agent = new EnvHttpProxyAgent();
 
+/** fetch wrapper that routes through system proxy (Node.js native fetch ignores HTTP_PROXY) */
+function fetchWithProxy(url: string, init: RequestInit): Promise<Response> {
+  return fetch(url, { ...init, dispatcher: agent } as any);
+}
+
 class TranslationService {
   /** 按优先级获取活跃的翻译配置 */
   private async getActiveConfigs() {
@@ -56,7 +61,7 @@ class TranslationService {
   private async callDeepL(apiKey: string, endpoint: string | null, text: string, targetLang: string): Promise<string | null> {
     if (!apiKey || apiKey.startsWith('****')) return null;
     const baseUrl = endpoint || 'https://api-free.deepl.com/v2/translate';
-    const resp = await fetch(baseUrl, {
+    const resp = await fetchWithProxy(baseUrl, {
       method: 'POST',
       headers: {
         'Authorization': `DeepL-Auth-Key ${apiKey}`,
@@ -66,7 +71,6 @@ class TranslationService {
         text: [text],
         target_lang: targetLang.toUpperCase(),
       }),
-      dispatcher: agent,
     });
     if (!resp.ok) throw new Error(`DeepL ${resp.status}: ${await resp.text()}`);
     const data = await resp.json() as { translations: { text: string }[] };
@@ -76,7 +80,7 @@ class TranslationService {
   private async callGoogle(apiKey: string, endpoint: string | null, text: string, targetLang: string): Promise<string | null> {
     if (!apiKey || apiKey.startsWith('****')) return null;
     const baseUrl = endpoint || 'https://translation.googleapis.com/language/translate/v2';
-    const resp = await fetch(`${baseUrl}?key=${apiKey}`, {
+    const resp = await fetchWithProxy(`${baseUrl}?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -84,7 +88,6 @@ class TranslationService {
         target: targetLang,
         format: 'text',
       }),
-      dispatcher: agent,
     });
     if (!resp.ok) throw new Error(`Google ${resp.status}: ${await resp.text()}`);
     const data = await resp.json() as { data: { translations: { translatedText: string }[] } };
@@ -94,14 +97,13 @@ class TranslationService {
   private async callMicrosoft(apiKey: string, endpoint: string | null, text: string, targetLang: string): Promise<string | null> {
     if (!apiKey || apiKey.startsWith('****')) return null;
     const baseUrl = endpoint || 'https://api.cognitive.microsofttranslator.com/translate';
-    const resp = await fetch(`${baseUrl}?api-version=3.0&to=${targetLang}`, {
+    const resp = await fetchWithProxy(`${baseUrl}?api-version=3.0&to=${targetLang}`, {
       method: 'POST',
       headers: {
         'Ocp-Apim-Subscription-Key': apiKey,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify([{ Text: text }]),
-      dispatcher: agent,
     });
     if (!resp.ok) throw new Error(`Microsoft ${resp.status}: ${await resp.text()}`);
     const data = await resp.json() as { translations: { text: string }[] }[];
@@ -153,11 +155,10 @@ class TranslationService {
   private async callDeepLBatch(apiKey: string, endpoint: string | null, texts: string[], targetLang: string): Promise<(string | null)[] | null> {
     if (!apiKey || apiKey.startsWith('****')) return null;
     const baseUrl = endpoint || 'https://api-free.deepl.com/v2/translate';
-    const resp = await fetch(baseUrl, {
+    const resp = await fetchWithProxy(baseUrl, {
       method: 'POST',
       headers: { 'Authorization': `DeepL-Auth-Key ${apiKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ text: texts, target_lang: targetLang.toUpperCase() }),
-      dispatcher: agent,
     });
     if (!resp.ok) throw new Error(`DeepL ${resp.status}: ${await resp.text()}`);
     const data = await resp.json() as { translations: { text: string }[] };
@@ -167,11 +168,10 @@ class TranslationService {
   private async callGoogleBatch(apiKey: string, endpoint: string | null, texts: string[], targetLang: string): Promise<(string | null)[] | null> {
     if (!apiKey || apiKey.startsWith('****')) return null;
     const baseUrl = endpoint || 'https://translation.googleapis.com/language/translate/v2';
-    const resp = await fetch(`${baseUrl}?key=${apiKey}`, {
+    const resp = await fetchWithProxy(`${baseUrl}?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ q: texts, target: targetLang, format: 'text' }),
-      dispatcher: agent,
     });
     if (!resp.ok) throw new Error(`Google ${resp.status}: ${await resp.text()}`);
     const data = await resp.json() as { data: { translations: { translatedText: string }[] } };
@@ -182,11 +182,10 @@ class TranslationService {
     if (!apiKey || apiKey.startsWith('****')) return null;
     const baseUrl = endpoint || 'https://api.cognitive.microsofttranslator.com/translate';
     const body = texts.map((t) => ({ Text: t }));
-    const resp = await fetch(`${baseUrl}?api-version=3.0&to=${targetLang}`, {
+    const resp = await fetchWithProxy(`${baseUrl}?api-version=3.0&to=${targetLang}`, {
       method: 'POST',
       headers: { 'Ocp-Apim-Subscription-Key': apiKey, 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
-      dispatcher: agent,
     });
     if (!resp.ok) throw new Error(`Microsoft ${resp.status}: ${await resp.text()}`);
     const data = await resp.json() as { translations: { text: string }[] }[];

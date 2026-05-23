@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { CreditCard, Check, Clock, Users, Building2, Shield } from 'lucide-react';
 import { api } from '@/lib/api';
+import { openPaddleCheckout } from '@/lib/paddle';
 import { useTranslations } from '@/hooks/use-translations';
 
 interface Plan {
@@ -101,17 +102,28 @@ export default function BillingPage() {
     setSubmitting(true);
     setMessage(null);
     try {
-      const res = await api.post<{ code: number; data: { checkoutUrl: string } | null; message: string }>(
-        '/api/v1/subscriptions/checkout',
-        { planId, employeeCount },
-      );
-      if (res.code === 0 && res.data?.checkoutUrl) {
-        window.location.href = res.data.checkoutUrl;
+      const res = await api.post<{
+        code: number;
+        data: { checkoutUrl: string; transactionId: string } | null;
+        message: string;
+      }>('/api/v1/subscriptions/checkout', { planId, employeeCount });
+      if (res.code === 0 && res.data?.transactionId) {
+        const checkoutResult = await openPaddleCheckout(res.data.transactionId);
+        if (checkoutResult.status === 'completed') {
+          try {
+            await api.post('/api/v1/subscriptions/sync', { transactionId: res.data.transactionId });
+          } catch (syncErr: any) {
+            console.error('Sync failed:', syncErr?.message || syncErr);
+            // Continue to refresh — webhook may have processed it
+          }
+        }
+        // Always refresh after checkout closes
+        await fetchData();
       } else {
         setMessage({ type: 'error', text: res.message || 'Failed to create checkout' });
       }
-    } catch {
-      setMessage({ type: 'error', text: 'Failed to create checkout' });
+    } catch (err: any) {
+      setMessage({ type: 'error', text: err?.message || 'Failed to create checkout' });
     } finally {
       setSubmitting(false);
     }
@@ -151,8 +163,8 @@ export default function BillingPage() {
         <h1 className="font-display text-2xl text-[rgb(var(--color-text))]">{t('plan')}</h1>
       </div>
 
-      {/* Trial Status */}
-      {trialInfo && (
+      {/* Trial Status — only show when no active subscription */}
+      {trialInfo && !subInfo && (
         <div className={`rounded-xl border p-4 ${trialInfo.isInTrial ? 'border-amber-500/30 bg-amber-500/5' : 'border-red-500/30 bg-red-500/5'}`}>
           <div className="flex items-center gap-2">
             <Clock className={`w-5 h-5 ${trialInfo.isInTrial ? 'text-amber-500' : 'text-red-500'}`} />

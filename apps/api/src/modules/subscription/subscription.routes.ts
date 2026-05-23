@@ -11,6 +11,7 @@ subscriptionRouter.get('/plans', subscriptionController.getPlans);
 // 需要认证
 subscriptionRouter.get('/current', authMiddleware, subscriptionController.getCurrentSubscription);
 subscriptionRouter.post('/checkout', authMiddleware, subscriptionController.createCheckout);
+subscriptionRouter.post('/sync', authMiddleware, subscriptionController.syncFromTransaction);
 subscriptionRouter.post('/cancel', authMiddleware, subscriptionController.cancelSubscription);
 subscriptionRouter.post('/change-plan', authMiddleware, subscriptionController.changePlan);
 subscriptionRouter.get('/invoices', authMiddleware, subscriptionController.getInvoices);

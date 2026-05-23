@@ -27,6 +27,22 @@ export class SubscriptionController {
     res.status(status).json(result);
   }
 
+  async syncFromTransaction(req: AuthRequest, res: Response) {
+    const { transactionId } = req.body;
+    if (!transactionId) {
+      res.status(400).json({ code: 400, data: null, message: 'transactionId is required' });
+      return;
+    }
+    try {
+      const result = await subscriptionService.syncFromTransaction(req.orgId!, transactionId);
+      const status = result.code === 0 ? 200 : 400;
+      res.status(status).json(result);
+    } catch (err) {
+      console.error('[Sync] Failed:', err);
+      res.status(500).json({ code: 500, data: null, message: 'Sync failed, please try again' });
+    }
+  }
+
   async cancelSubscription(req: AuthRequest, res: Response) {
     const result = await subscriptionService.cancelSubscription(req.orgId!);
     const status = result.code === 0 ? 200 : 400;

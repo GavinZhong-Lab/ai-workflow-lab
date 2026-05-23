@@ -4,7 +4,12 @@
  */
 import { Paddle, Environment } from '@paddle/paddle-node-sdk';
 import type { EventEntity } from '@paddle/paddle-node-sdk';
+import { EnvHttpProxyAgent } from 'undici';
+import { setGlobalDispatcher } from 'undici';
 import { env } from '../config/index.js';
+
+// 设置全局代理，Paddle SDK 内部的 fetch 调用通过代理访问 Paddle API
+setGlobalDispatcher(new EnvHttpProxyAgent());
 
 const paddle = new Paddle(env.PADDLE_API_KEY || 'pdl_missing', {
   environment: env.PADDLE_ENVIRONMENT === 'production' ? Environment.production : Environment.sandbox,
@@ -23,9 +28,8 @@ export const paddleClient = {
         priceId: item.priceId,
         quantity: item.quantity,
       })),
-      customerId: null, // 使用 email 识别客户
+      customerId: null,
       customData: { organizationId: params.organizationId },
-      checkout: { url: params.successUrl },
     });
 
     return {
@@ -61,6 +65,20 @@ export const paddleClient = {
       subscriptionId: [subscriptionId],
       after,
       perPage: 20,
+    });
+  },
+
+  /** 查询交易详情 */
+  async getTransaction(transactionId: string) {
+    return paddle.transactions.get(transactionId);
+  },
+
+  /** 列出订阅 */
+  listSubscriptions(params?: { priceId?: string[]; status?: Array<'active' | 'past_due' | 'canceled' | 'trialing' | 'paused'>; perPage?: number }) {
+    return paddle.subscriptions.list({
+      priceId: params?.priceId,
+      status: params?.status,
+      perPage: params?.perPage,
     });
   },
 

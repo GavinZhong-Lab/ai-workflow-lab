@@ -11,8 +11,9 @@ import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/cn';
 import { useAuthStore, type AuthState } from '@/stores/auth';
-import { useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Shield, LayoutDashboard, Grid3x3, Users, CreditCard, Settings, BookOpen } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { api } from '@/lib/api';
+import { ChevronLeft, ChevronRight, Shield, LayoutDashboard, Grid3x3, Users, CreditCard, Settings, BookOpen, Star } from 'lucide-react';
 
 const navItems = [
   { key: 'dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -37,6 +38,22 @@ export function Sidebar({ locale, mobileOpen, onClose, collapsed, onToggleCollap
   const pathname = usePathname();
   const user = useAuthStore((s: AuthState) => s.user);
   const orgName = useAuthStore((s: AuthState) => s.orgName);
+  const [planName, setPlanName] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    api.get<{ code: number; data: { subscription: { planName: string } | null } }>('/api/v1/subscriptions/current')
+      .then((res) => {
+        if (!cancelled && res.code === 0 && res.data?.subscription?.planName) {
+          setPlanName(res.data.subscription.planName);
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  // 简短的套餐名：去掉括号内的内容（如"年付"、"月付"）
+  const shortPlanName = planName?.replace(/\s*\(.*?\)\s*/g, '') || null;
 
   useEffect(() => {
     if (mobileOpen) {
@@ -172,7 +189,12 @@ export function Sidebar({ locale, mobileOpen, onClose, collapsed, onToggleCollap
           </div>
           {!collapsed && (
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-[rgb(var(--color-text))] truncate">{user?.name || user?.email}</p>
+              <p className="text-sm font-medium text-[rgb(var(--color-text))] truncate flex items-center gap-1.5">
+                <span className="truncate">{user?.name || user?.email}</span>
+                {shortPlanName && (
+                  <span className="text-xs font-medium text-amber-500 shrink-0">{shortPlanName}</span>
+                )}
+              </p>
               <p className="text-xs text-[rgb(var(--color-text-muted))] truncate">{user?.email}</p>
             </div>
           )}

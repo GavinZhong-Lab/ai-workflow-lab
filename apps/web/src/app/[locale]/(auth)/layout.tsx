@@ -7,6 +7,7 @@
 import { useState, useEffect } from 'react';
 import { useTheme } from 'next-themes';
 import { useRouter, usePathname } from 'next/navigation';
+import { Footer } from '@/components/layout/Footer';
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
@@ -27,13 +28,13 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   const currentLocale = pathname.split('/')[1] || 'zh-CN';
 
   return (
-    <>
+    <div className="min-h-screen flex flex-col bg-[rgb(var(--color-bg))]">
       {/* Top bar: theme + language */}
       <div className="fixed top-0 left-0 right-0 z-50 h-12 flex items-center justify-end gap-1 px-4">
         {/* Theme toggle */}
         <button
           onClick={toggleTheme}
-          className="p-2 rounded-lg hover:bg-ink-800 text-ink-400 hover:text-ink-200 transition-colors"
+          className="p-2 rounded-lg hover:bg-[rgb(var(--color-surface))] text-[rgb(var(--color-text-muted))] hover:text-[rgb(var(--color-text))] transition-colors"
           title={mounted && theme === 'dark' ? 'Switch to light' : 'Switch to dark'}
         >
           {mounted ? (
@@ -51,13 +52,13 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         </button>
 
         {/* Language switcher */}
-        <div className="flex items-center gap-px bg-ink-800 rounded-md p-0.5">
+        <div className="flex items-center gap-px bg-[rgb(var(--color-surface))] rounded-md p-0.5">
           <button
             onClick={() => switchLocale('zh-CN')}
             className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
               currentLocale === 'zh-CN'
-                ? 'bg-amber-500/20 text-amber-400'
-                : 'text-ink-400 hover:text-ink-200'
+                ? 'bg-[rgb(var(--color-accent))/20] text-[rgb(var(--color-accent))]'
+                : 'text-[rgb(var(--color-text-muted))] hover:text-[rgb(var(--color-text))]'
             }`}
           >
             中
@@ -66,8 +67,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             onClick={() => switchLocale('en-US')}
             className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
               currentLocale === 'en-US'
-                ? 'bg-amber-500/20 text-amber-400'
-                : 'text-ink-400 hover:text-ink-200'
+                ? 'bg-[rgb(var(--color-accent))/20] text-[rgb(var(--color-accent))]'
+                : 'text-[rgb(var(--color-text-muted))] hover:text-[rgb(var(--color-text))]'
             }`}
           >
             EN
@@ -76,6 +77,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       </div>
 
       {children}
-    </>
+      <Footer />
+    </div>
   );
 }
